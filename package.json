@@ -21,6 +21,8 @@
     "node": ">=18"
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.18"
+    "@tailwindcss/postcss": "^4.1.18",
+    "lucide-react": "^0.562.0",
+    "next-auth": "^4.24.13"
   }
 }

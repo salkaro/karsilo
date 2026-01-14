@@ -1,24 +1,19 @@
-import { Hero } from "../components/dom/hero";
-
+import { LandingHero } from "../components/dom/landing-hero";
+import { TrustedBy } from "../components/dom/trusted-by";
+import { Features } from "../components/dom/features";
+import { StatsSection } from "../components/dom/stats-section";
+import { HowItWorks } from "../components/dom/how-it-works";
+import { CTASection } from "../components/dom/cta-section";
 
 export default function Home() {
-    return (
-        <Hero
-            badge={{
-                icon: '🚀',
-                text: '100K+ Top Investors Added',
-            }}
-            title="Unlock Investor"
-            highlightedText="Connections in 2 mins"
-            description="Access our comprehensive databases to find detailed contact information for over 100K+ VC and angel investors from top global markets."
-            primaryButton={{
-                label: 'Get Started Now',
-                href: '/sign-up',
-            }}
-            secondaryButton={{
-                label: 'Watch Demo',
-                href: '/demo',
-            }}
-        />
-    );
+  return (
+    <div className="flex flex-col w-full">
+      <LandingHero />
+      <TrustedBy />
+      <Features />
+      <StatsSection />
+      <HowItWorks />
+      <CTASection />
+    </div>
+  );
 }

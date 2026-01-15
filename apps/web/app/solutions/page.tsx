@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Container,
@@ -46,7 +46,7 @@ const solutions: Solution[] = [
     ],
     color: "brand",
     icon: (
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
         <circle cx="24" cy="14" r="7" stroke="currentColor" strokeWidth="2" />
         <path
           d="M12 40v-3a12 12 0 0 1 24 0v3"
@@ -76,7 +76,7 @@ const solutions: Solution[] = [
     ],
     color: "purple",
     icon: (
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
         <circle cx="24" cy="10" r="5" stroke="currentColor" strokeWidth="2" />
         <circle cx="12" cy="26" r="5" stroke="currentColor" strokeWidth="2" />
         <circle cx="36" cy="26" r="5" stroke="currentColor" strokeWidth="2" />
@@ -120,7 +120,7 @@ const solutions: Solution[] = [
     ],
     color: "violet",
     icon: (
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
         <rect
           x="6"
           y="6"
@@ -181,7 +181,7 @@ const solutions: Solution[] = [
     ],
     color: "indigo",
     icon: (
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+      <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
         <path
           d="M8 16h32v24a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V16z"
           stroke="currentColor"
@@ -205,34 +205,135 @@ const solutions: Solution[] = [
   },
 ];
 
-// Interactive dashboard visualization
-function DashboardVisualization({
-  activeSolution,
+// Rolling number animation component
+function RollingNumber({
+  value,
+  prefix = "",
+  fontSize = "3xl",
+  color = "white",
 }: {
-  activeSolution: Solution;
+  value: number;
+  prefix?: string;
+  fontSize?: string;
+  color?: string;
 }) {
-  const [hoveredAccount, setHoveredAccount] = useState<number | null>(null);
-  const [animatedWidths, setAnimatedWidths] = useState<number[]>([
-    0, 0, 0, 0, 0,
+  const [displayValue, setDisplayValue] = useState(value);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const prevValueRef = useRef(value);
+
+  useEffect(() => {
+    if (prevValueRef.current === value) return;
+
+    const startValue = prevValueRef.current;
+    const endValue = value;
+    const diff = endValue - startValue;
+    const duration = 400;
+    const steps = 20;
+    let step = 0;
+
+    setIsAnimating(true);
+
+    const timer = setInterval(() => {
+      step++;
+      const progress = step / steps;
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(Math.round(startValue + diff * eased));
+
+      if (step >= steps) {
+        clearInterval(timer);
+        setDisplayValue(endValue);
+        prevValueRef.current = endValue;
+        setTimeout(() => setIsAnimating(false), 100);
+      }
+    }, duration / steps);
+
+    return () => clearInterval(timer);
+  }, [value]);
+
+  return (
+    <Text
+      fontSize={fontSize}
+      fontWeight="bold"
+      color={color}
+      style={{
+        transition: "text-shadow 0.3s ease",
+        textShadow: isAnimating ? "0 0 15px rgba(139, 92, 246, 0.5)" : "none",
+      }}
+    >
+      {prefix}
+      {displayValue.toLocaleString()}
+    </Text>
+  );
+}
+
+// Full-width dashboard with bars on left and notifications on right
+function FullWidthDashboard({ activeSolution }: { activeSolution: Solution }) {
+  const [notifications, setNotifications] = useState([
+    { id: 1, product: "Product A", amount: 49, time: "Just now" },
+    { id: 2, product: "Product B", amount: 129, time: "2s ago" },
+    { id: 3, product: "Product C", amount: 79, time: "5s ago" },
   ]);
 
-  const accounts = [
+  const [accounts, setAccounts] = useState([
     { name: "Product A", revenue: 12400, growth: 23 },
     { name: "Product B", revenue: 8200, growth: 12 },
     { name: "Product C", revenue: 15600, growth: 45 },
     { name: "Product D", revenue: 6800, growth: -5 },
     { name: "Product E", revenue: 9400, growth: 18 },
-  ];
+  ]);
+
+  const [dailySales, setDailySales] = useState(47);
+  const [dailyRevenue, setDailyRevenue] = useState(4280);
 
   const total = accounts.reduce((sum, acc) => sum + acc.revenue, 0);
 
-  // Animate bars on mount
-  useState(() => {
-    const timer = setTimeout(() => {
-      setAnimatedWidths(accounts.map((acc) => (acc.revenue / total) * 100));
-    }, 100);
-    return () => clearTimeout(timer);
-  });
+  // Animate notifications and update bars
+  useEffect(() => {
+    const products = [
+      "Product A",
+      "Product B",
+      "Product C",
+      "Product D",
+      "Product E",
+    ];
+    const amounts = [29, 49, 79, 99, 129, 199, 249];
+
+    const interval = setInterval(() => {
+      const productName =
+        products[Math.floor(Math.random() * products.length)]!;
+      const amount = amounts[Math.floor(Math.random() * amounts.length)]!;
+
+      const newNotification = {
+        id: Date.now(),
+        product: productName,
+        amount: amount,
+        time: "Just now",
+      };
+
+      setNotifications((prev) => {
+        const updated = prev.map((n, i) => ({
+          ...n,
+          time: i === 0 ? "2s ago" : i === 1 ? "5s ago" : "8s ago",
+        }));
+        return [newNotification, ...updated.slice(0, 4)];
+      });
+
+      // Update the corresponding account's revenue
+      setAccounts((prev) =>
+        prev.map((acc) =>
+          acc.name === productName
+            ? { ...acc, revenue: acc.revenue + amount }
+            : acc,
+        ),
+      );
+
+      // Update daily stats
+      setDailySales((prev) => prev + 1);
+      setDailyRevenue((prev) => prev + amount);
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <Box
@@ -247,8 +348,8 @@ function DashboardVisualization({
         position="absolute"
         top={0}
         right={0}
-        width="200px"
-        height="200px"
+        width="300px"
+        height="300px"
         bg="brand.500"
         opacity={0.05}
         borderRadius="full"
@@ -258,459 +359,225 @@ function DashboardVisualization({
         position="absolute"
         bottom={0}
         left={0}
-        width="150px"
-        height="150px"
+        width="200px"
+        height="200px"
         bg="brand.500"
         opacity={0.03}
         borderRadius="full"
         transform="translate(-50%, 50%)"
       />
 
-      {/* Header */}
-      <Flex justify="space-between" align="center" mb={6}>
+      <Grid
+        templateColumns={{ base: "1fr", lg: "1.2fr 1fr" }}
+        gap={{ base: 6, lg: 8 }}
+        position="relative"
+        zIndex={1}
+      >
+        {/* Left side - Revenue bars */}
         <Box>
-          <Text fontSize="sm" color="gray.400" mb={1}>
-            Total Revenue
-          </Text>
-          <Text fontSize="3xl" fontWeight="bold" color="white">
-            ${total.toLocaleString()}
-          </Text>
-        </Box>
-        <Box
-          px={3}
-          py={1}
-          borderRadius="full"
-          style={{ background: "linear-gradient(to right, #22c55e, #4ade80)" }}
-        >
-          <Text fontSize="sm" fontWeight="semibold" color="white">
-            +28% this month
-          </Text>
-        </Box>
-      </Flex>
-
-      {/* Account bars */}
-      <VStack align="stretch" gap={3}>
-        {accounts.map((account, index) => {
-          const percentage = (account.revenue / total) * 100;
-          const isHovered = hoveredAccount === index;
-
-          return (
+          {/* Header */}
+          <Flex justify="space-between" align="center" mb={5}>
+            <Box>
+              <Text fontSize="sm" color="gray.400" mb={1}>
+                Total Revenue
+              </Text>
+              <RollingNumber value={total} prefix="$" fontSize="3xl" />
+            </Box>
             <Box
-              key={account.name}
-              onMouseEnter={() => setHoveredAccount(index)}
-              onMouseLeave={() => setHoveredAccount(null)}
-              cursor="pointer"
+              px={3}
+              py={1}
+              borderRadius="full"
               style={{
-                transition: "all 0.2s ease",
-                transform: isHovered ? "scale(1.02)" : "scale(1)",
+                background: "linear-gradient(to right, #7c3aed, #a78bfa)",
               }}
             >
-              <Flex justify="space-between" mb={1}>
-                <Text fontSize="sm" color="gray.300">
-                  {account.name}
-                </Text>
-                <HStack gap={3}>
-                  <Text fontSize="sm" fontWeight="medium" color="white">
-                    ${account.revenue.toLocaleString()}
-                  </Text>
-                  <Text
-                    fontSize="xs"
-                    color={account.growth >= 0 ? "green.400" : "red.400"}
-                  >
-                    {account.growth >= 0 ? "+" : ""}
-                    {account.growth}%
-                  </Text>
-                </HStack>
-              </Flex>
-              <Box
-                position="relative"
-                height="10px"
-                bg="gray.800"
-                borderRadius="full"
-                overflow="hidden"
-              >
-                <Box
-                  position="absolute"
-                  left={0}
-                  top={0}
-                  bottom={0}
-                  borderRadius="full"
-                  style={{
-                    width: `${percentage}%`,
-                    background: isHovered
-                      ? "linear-gradient(to right, #a78bfa, #8b5cf6)"
-                      : "linear-gradient(to right, #7c3aed, #8b5cf6)",
-                    transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
-                    boxShadow: isHovered
-                      ? "0 0 20px rgba(139, 92, 246, 0.6)"
-                      : "none",
-                  }}
-                />
-              </Box>
+              <Text fontSize="sm" fontWeight="semibold" color="white">
+                +28% this month
+              </Text>
             </Box>
-          );
-        })}
-      </VStack>
+          </Flex>
 
-      {/* Bottom stats */}
-      <Grid
-        templateColumns="repeat(3, 1fr)"
-        gap={4}
-        mt={6}
-        pt={6}
-        borderTop="1px solid"
-        borderColor="gray.800"
-      >
-        {activeSolution.stats.map((stat, index) => (
-          <Box key={index} textAlign="center">
-            <Text fontSize="2xl" fontWeight="bold" color="brand.400">
-              {stat.value}
+          {/* Account bars */}
+          <VStack align="stretch" gap={3}>
+            {accounts.map((account) => {
+              const percentage = (account.revenue / total) * 100;
+
+              return (
+                <Box key={account.name}>
+                  <Flex justify="space-between" mb={1}>
+                    <Text fontSize="sm" color="gray.300">
+                      {account.name}
+                    </Text>
+                    <HStack gap={3}>
+                      <Text fontSize="sm" fontWeight="medium" color="white">
+                        ${account.revenue.toLocaleString()}
+                      </Text>
+                      <Text
+                        fontSize="xs"
+                        color={account.growth >= 0 ? "brand.400" : "red.400"}
+                      >
+                        {account.growth >= 0 ? "+" : ""}
+                        {account.growth}%
+                      </Text>
+                    </HStack>
+                  </Flex>
+                  <Box
+                    position="relative"
+                    height="8px"
+                    bg="gray.800"
+                    borderRadius="full"
+                    overflow="hidden"
+                  >
+                    <Box
+                      position="absolute"
+                      left={0}
+                      top={0}
+                      bottom={0}
+                      borderRadius="full"
+                      style={{
+                        width: `${percentage}%`,
+                        background:
+                          "linear-gradient(to right, #7c3aed, #8b5cf6)",
+                        transition: "all 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+                      }}
+                    />
+                  </Box>
+                </Box>
+              );
+            })}
+          </VStack>
+
+          {/* Bottom stats */}
+          <Grid
+            templateColumns="repeat(3, 1fr)"
+            gap={4}
+            mt={5}
+            pt={5}
+            borderTop="1px solid"
+            borderColor="gray.800"
+          >
+            {activeSolution.stats.map((stat, index) => (
+              <Box key={index} textAlign="center">
+                <Text fontSize="xl" fontWeight="bold" color="brand.400">
+                  {stat.value}
+                </Text>
+                <Text fontSize="xs" color="gray.500">
+                  {stat.label}
+                </Text>
+              </Box>
+            ))}
+          </Grid>
+        </Box>
+
+        {/* Right side - Live notifications */}
+        <Box>
+          <Flex align="center" gap={2} mb={4}>
+            <Box
+              width="8px"
+              height="8px"
+              borderRadius="full"
+              bg="brand.400"
+              style={{
+                animation: "pulse 2s infinite",
+                boxShadow: "0 0 8px rgba(139, 92, 246, 0.6)",
+              }}
+            />
+            <Text fontSize="sm" fontWeight="medium" color="gray.400">
+              Live Sales Feed
             </Text>
-            <Text fontSize="xs" color="gray.500">
-              {stat.label}
-            </Text>
+          </Flex>
+
+          <style>
+            {`
+              @keyframes slideIn {
+                from {
+                  opacity: 0;
+                  transform: translateX(20px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateX(0);
+                }
+              }
+              @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
+              }
+            `}
+          </style>
+
+          <VStack align="stretch" gap={3}>
+            {notifications.map((notification, index) => (
+              <Box
+                key={notification.id}
+                bg="gray.800"
+                borderRadius="lg"
+                p={3}
+                border="1px solid"
+                borderColor={index === 0 ? "brand.500" : "gray.700"}
+                style={{
+                  animation: index === 0 ? "slideIn 0.3s ease-out" : "none",
+                  opacity: 1 - index * 0.15,
+                }}
+              >
+                <Flex justify="space-between" align="center">
+                  <HStack gap={3}>
+                    <Box
+                      width="10px"
+                      height="10px"
+                      borderRadius="full"
+                      bg={index === 0 ? "brand.400" : "brand.600"}
+                    />
+                    <Box>
+                      <Text fontSize="sm" color="white" fontWeight="medium">
+                        {notification.product}
+                      </Text>
+                      <Text fontSize="xs" color="gray.500">
+                        {notification.time}
+                      </Text>
+                    </Box>
+                  </HStack>
+                  <Text fontSize="md" fontWeight="bold" color="brand.400">
+                    +${notification.amount}
+                  </Text>
+                </Flex>
+              </Box>
+            ))}
+          </VStack>
+
+          {/* Summary */}
+          <Box mt={4} pt={4} borderTop="1px solid" borderColor="gray.800">
+            <Flex justify="space-between" align="center">
+              <Text fontSize="sm" color="gray.400">
+                Last 24 hours
+              </Text>
+              <HStack gap={4}>
+                <Box textAlign="right">
+                  <RollingNumber
+                    value={dailySales}
+                    fontSize="lg"
+                    color="white"
+                  />
+                  <Text fontSize="xs" color="gray.500">
+                    Sales
+                  </Text>
+                </Box>
+                <Box textAlign="right">
+                  <RollingNumber
+                    value={dailyRevenue}
+                    prefix="$"
+                    fontSize="lg"
+                    color="brand.400"
+                  />
+                  <Text fontSize="xs" color="gray.500">
+                    Revenue
+                  </Text>
+                </Box>
+              </HStack>
+            </Flex>
           </Box>
-        ))}
+        </Box>
       </Grid>
-    </Box>
-  );
-}
-
-// Animated graphic showing sales flowing into a central collection
-function FloatingGraphic() {
-  const [total, setTotal] = useState(15700);
-
-  // Animate the total up and down
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const change = Math.floor(Math.random() * 200) - 50;
-      setTotal((prev) => Math.max(14000, Math.min(17000, prev + change)));
-    }, 800);
-    return () => clearInterval(interval);
-  }, []);
-
-  const formatTotal = (value: number) => {
-    if (value >= 1000) {
-      return `$${(value / 1000).toFixed(1)}K`;
-    }
-    return `$${value}`;
-  };
-
-  return (
-    <Box
-      display={{ base: "none", lg: "block" }}
-      position="relative"
-      mt={6}
-      height="280px"
-    >
-      <style>
-        {`
-          @keyframes sale1 {
-            0% { transform: translate(0, 0) scale(1); opacity: 0; }
-            10% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(140px, 80px) scale(0.5); opacity: 0; }
-          }
-          @keyframes sale2 {
-            0% { transform: translate(0, 0) scale(1); opacity: 0; }
-            10% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(90px, -20px) scale(0.5); opacity: 0; }
-          }
-          @keyframes sale3 {
-            0% { transform: translate(0, 0) scale(1); opacity: 0; }
-            10% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(-100px, 60px) scale(0.5); opacity: 0; }
-          }
-          @keyframes sale4 {
-            0% { transform: translate(0, 0) scale(1); opacity: 0; }
-            10% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(-80px, -40px) scale(0.5); opacity: 0; }
-          }
-          @keyframes sale5 {
-            0% { transform: translate(0, 0) scale(1); opacity: 0; }
-            10% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(60px, 100px) scale(0.5); opacity: 0; }
-          }
-          @keyframes sale6 {
-            0% { transform: translate(0, 0) scale(1); opacity: 0; }
-            10% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { transform: translate(-120px, -10px) scale(0.5); opacity: 0; }
-          }
-          @keyframes centerPulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50% { transform: translate(-50%, -50%) scale(1.02); }
-          }
-          @keyframes ringPulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
-            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.1; }
-          }
-        `}
-      </style>
-
-      {/* Outer ring */}
-      <Box
-        position="absolute"
-        left="50%"
-        top="50%"
-        width="200px"
-        height="200px"
-        borderRadius="full"
-        border="2px dashed"
-        borderColor="brand.200"
-        style={{ animation: "ringPulse 3s ease-in-out infinite" }}
-      />
-
-      {/* Sale 1 - Top left - Product A */}
-      <Box
-        position="absolute"
-        left="20px"
-        top="30px"
-        style={{ animation: "sale1 3s ease-in-out infinite" }}
-      >
-        <Box
-          bg="white"
-          borderRadius="lg"
-          px={2}
-          py={1.5}
-          boxShadow="md"
-          border="1px solid"
-          borderColor="green.200"
-        >
-          <VStack gap={0} align="start">
-            <Text fontSize="2xs" color="gray.400" lineHeight="1">
-              Product A
-            </Text>
-            <HStack gap={1.5}>
-              <Box
-                width="6px"
-                height="6px"
-                borderRadius="full"
-                bg="green.400"
-              />
-              <Text fontSize="xs" fontWeight="semibold" color="green.600">
-                +$49
-              </Text>
-            </HStack>
-          </VStack>
-        </Box>
-      </Box>
-
-      {/* Sale 2 - Bottom left - Product B */}
-      <Box
-        position="absolute"
-        left="40px"
-        bottom="40px"
-        style={{ animation: "sale2 3.5s ease-in-out infinite 0.5s" }}
-      >
-        <Box
-          bg="white"
-          borderRadius="lg"
-          px={2}
-          py={1.5}
-          boxShadow="md"
-          border="1px solid"
-          borderColor="green.200"
-        >
-          <VStack gap={0} align="start">
-            <Text fontSize="2xs" color="gray.400" lineHeight="1">
-              Product B
-            </Text>
-            <HStack gap={1.5}>
-              <Box
-                width="6px"
-                height="6px"
-                borderRadius="full"
-                bg="green.400"
-              />
-              <Text fontSize="xs" fontWeight="semibold" color="green.600">
-                +$129
-              </Text>
-            </HStack>
-          </VStack>
-        </Box>
-      </Box>
-
-      {/* Sale 3 - Top right - Product C */}
-      <Box
-        position="absolute"
-        right="30px"
-        top="20px"
-        style={{ animation: "sale3 2.8s ease-in-out infinite 1s" }}
-      >
-        <Box
-          bg="white"
-          borderRadius="lg"
-          px={2}
-          py={1.5}
-          boxShadow="md"
-          border="1px solid"
-          borderColor="green.200"
-        >
-          <VStack gap={0} align="start">
-            <Text fontSize="2xs" color="gray.400" lineHeight="1">
-              Product C
-            </Text>
-            <HStack gap={1.5}>
-              <Box
-                width="6px"
-                height="6px"
-                borderRadius="full"
-                bg="green.400"
-              />
-              <Text fontSize="xs" fontWeight="semibold" color="green.600">
-                +$79
-              </Text>
-            </HStack>
-          </VStack>
-        </Box>
-      </Box>
-
-      {/* Sale 4 - Bottom right - Product D */}
-      <Box
-        position="absolute"
-        right="20px"
-        bottom="60px"
-        style={{ animation: "sale4 3.2s ease-in-out infinite 1.5s" }}
-      >
-        <Box
-          bg="white"
-          borderRadius="lg"
-          px={2}
-          py={1.5}
-          boxShadow="md"
-          border="1px solid"
-          borderColor="green.200"
-        >
-          <VStack gap={0} align="start">
-            <Text fontSize="2xs" color="gray.400" lineHeight="1">
-              Product D
-            </Text>
-            <HStack gap={1.5}>
-              <Box
-                width="6px"
-                height="6px"
-                borderRadius="full"
-                bg="green.400"
-              />
-              <Text fontSize="xs" fontWeight="semibold" color="green.600">
-                +$199
-              </Text>
-            </HStack>
-          </VStack>
-        </Box>
-      </Box>
-
-      {/* Sale 5 - Left middle - Product E */}
-      <Box
-        position="absolute"
-        left="10px"
-        top="50%"
-        style={{ animation: "sale5 2.5s ease-in-out infinite 2s" }}
-      >
-        <Box
-          bg="white"
-          borderRadius="lg"
-          px={2}
-          py={1.5}
-          boxShadow="md"
-          border="1px solid"
-          borderColor="green.200"
-        >
-          <VStack gap={0} align="start">
-            <Text fontSize="2xs" color="gray.400" lineHeight="1">
-              Product E
-            </Text>
-            <HStack gap={1.5}>
-              <Box
-                width="6px"
-                height="6px"
-                borderRadius="full"
-                bg="green.400"
-              />
-              <Text fontSize="xs" fontWeight="semibold" color="green.600">
-                +$29
-              </Text>
-            </HStack>
-          </VStack>
-        </Box>
-      </Box>
-
-      {/* Sale 6 - Right middle-top - Product F */}
-      <Box
-        position="absolute"
-        right="10px"
-        top="35%"
-        style={{ animation: "sale6 3.8s ease-in-out infinite 2.5s" }}
-      >
-        <Box
-          bg="white"
-          borderRadius="lg"
-          px={2}
-          py={1.5}
-          boxShadow="md"
-          border="1px solid"
-          borderColor="green.200"
-        >
-          <VStack gap={0} align="start">
-            <Text fontSize="2xs" color="gray.400" lineHeight="1">
-              Product F
-            </Text>
-            <HStack gap={1.5}>
-              <Box
-                width="6px"
-                height="6px"
-                borderRadius="full"
-                bg="green.400"
-              />
-              <Text fontSize="xs" fontWeight="semibold" color="green.600">
-                +$99
-              </Text>
-            </HStack>
-          </VStack>
-        </Box>
-      </Box>
-
-      {/* Central collection pot */}
-      <Box
-        position="absolute"
-        left="50%"
-        top="50%"
-        style={{ animation: "centerPulse 2s ease-in-out infinite" }}
-      >
-        <Box
-          bg="brand.600"
-          borderRadius="full"
-          width="90px"
-          height="90px"
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          boxShadow="0 10px 40px rgba(139, 92, 246, 0.4)"
-        >
-          <Text
-            fontSize="xs"
-            color="whiteAlpha.800"
-            fontWeight="medium"
-            mb={-0.5}
-          >
-            Total
-          </Text>
-          <Text
-            fontSize="lg"
-            fontWeight="bold"
-            color="white"
-            style={{ transition: "all 0.3s ease" }}
-          >
-            {formatTotal(total)}
-          </Text>
-        </Box>
-      </Box>
     </Box>
   );
 }
@@ -791,7 +658,7 @@ function ConnectionLines() {
   );
 }
 
-// Solution card with 3D tilt effect
+// Compact solution card
 function SolutionCard({
   solution,
   isActive,
@@ -810,18 +677,18 @@ function SolutionCard({
       onMouseLeave={() => setIsHovered(false)}
       cursor="pointer"
       position="relative"
-      p={{ base: 5, md: 6 }}
+      p={4}
       bg={isActive ? "white" : "gray.50"}
-      borderRadius="2xl"
+      borderRadius="xl"
       border="2px solid"
       borderColor={
         isActive ? "brand.500" : isHovered ? "brand.200" : "gray.100"
       }
-      boxShadow={isActive ? "xl" : isHovered ? "lg" : "sm"}
+      boxShadow={isActive ? "lg" : isHovered ? "md" : "sm"}
       transition="all 0.3s ease"
       style={{
         transform: isHovered
-          ? "perspective(1000px) rotateX(-2deg) rotateY(2deg) translateY(-4px)"
+          ? "perspective(1000px) rotateX(-2deg) rotateY(2deg) translateY(-2px)"
           : "perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)",
       }}
     >
@@ -830,32 +697,32 @@ function SolutionCard({
           position="absolute"
           top={-1}
           right={4}
-          px={3}
-          py={1}
+          px={2}
+          py={0.5}
           bg="brand.500"
-          borderRadius="0 0 8px 8px"
+          borderRadius="0 0 6px 6px"
         >
-          <Text fontSize="xs" fontWeight="semibold" color="white">
+          <Text fontSize="2xs" fontWeight="semibold" color="white">
             Selected
           </Text>
         </Box>
       )}
 
-      <Flex gap={4} align="flex-start">
+      <Flex gap={3} align="center">
         <Box
-          p={3}
+          p={2}
           bg={isActive ? "brand.50" : "gray.100"}
-          borderRadius="xl"
+          borderRadius="lg"
           color={isActive ? "brand.600" : "gray.500"}
           transition="all 0.3s ease"
         >
           {solution.icon}
         </Box>
         <Box flex={1}>
-          <Text fontSize="lg" fontWeight="bold" color="gray.900" mb={1}>
+          <Text fontSize="md" fontWeight="bold" color="gray.900">
             {solution.title}
           </Text>
-          <Text fontSize="sm" color="gray.500">
+          <Text fontSize="xs" color="gray.500">
             {solution.subtitle}
           </Text>
         </Box>
@@ -970,132 +837,122 @@ export default function SolutionsPage() {
           </Flex>
         </FadeIn>
 
-        {/* Main content grid */}
+        {/* Main content grid - Cards and Details side by side */}
         <Grid
-          templateColumns={{ base: "1fr", lg: "1fr 1.2fr" }}
-          gap={{ base: 8, lg: 12 }}
-          alignItems="start"
+          templateColumns={{ base: "1fr", lg: "1fr 1.3fr" }}
+          gap={{ base: 6, lg: 8 }}
+          alignItems="stretch"
+          mb={{ base: 12, md: 16 }}
         >
           {/* Left - Solution cards */}
           <FadeIn direction="left" delay={0.1}>
-            <Box>
-              <VStack align="stretch" gap={4}>
-                {solutions.map((solution, index) => (
-                  <FadeIn
-                    key={solution.id}
-                    delay={0.1 + index * 0.05}
-                    direction="left"
-                  >
-                    <SolutionCard
-                      solution={solution}
-                      isActive={activeSolution.id === solution.id}
-                      onClick={() => setActiveSolution(solution)}
-                    />
-                  </FadeIn>
-                ))}
-              </VStack>
-              <FadeIn delay={0.4} direction="up">
-                <FloatingGraphic />
-              </FadeIn>
-            </Box>
+            <VStack align="stretch" gap={3} height="full">
+              {solutions.map((solution, index) => (
+                <FadeIn
+                  key={solution.id}
+                  delay={0.1 + index * 0.05}
+                  direction="left"
+                >
+                  <SolutionCard
+                    solution={solution}
+                    isActive={activeSolution.id === solution.id}
+                    onClick={() => setActiveSolution(solution)}
+                  />
+                </FadeIn>
+              ))}
+            </VStack>
           </FadeIn>
 
-          {/* Right - Details and visualization */}
+          {/* Right - Solution details */}
           <FadeIn direction="right" delay={0.2}>
-            <Box position="sticky" top="100px">
-              {/* Solution details */}
-              <Box
-                position="relative"
-                bg="white"
-                borderRadius="2xl"
-                p={{ base: 6, md: 8 }}
-                boxShadow="xl"
-                mb={6}
-                overflow="hidden"
-              >
-                <ConnectionLines />
+            <Box
+              position="relative"
+              bg="white"
+              borderRadius="2xl"
+              p={{ base: 5, md: 6 }}
+              boxShadow="xl"
+              overflow="hidden"
+              height="full"
+              display="flex"
+              flexDirection="column"
+            >
+              <ConnectionLines />
 
-                <Box position="relative" zIndex={1}>
-                  <HStack gap={4} mb={4}>
-                    <Box
-                      p={4}
-                      bg="brand.50"
-                      borderRadius="xl"
-                      color="brand.600"
-                    >
-                      {activeSolution.icon}
-                    </Box>
-                    <Box>
-                      <Text fontSize="2xl" fontWeight="bold" color="gray.900">
-                        {activeSolution.title}
-                      </Text>
-                      <Text fontSize="md" color="brand.600">
-                        {activeSolution.subtitle}
-                      </Text>
-                    </Box>
-                  </HStack>
+              <Box position="relative" zIndex={1} flex={1}>
+                <HStack gap={3} mb={4}>
+                  <Box p={3} bg="brand.50" borderRadius="xl" color="brand.600">
+                    {activeSolution.icon}
+                  </Box>
+                  <Box>
+                    <Text fontSize="xl" fontWeight="bold" color="gray.900">
+                      {activeSolution.title}
+                    </Text>
+                    <Text fontSize="sm" color="brand.600">
+                      {activeSolution.subtitle}
+                    </Text>
+                  </Box>
+                </HStack>
 
-                  <Text fontSize="md" color="gray.600" lineHeight="1.8" mb={6}>
-                    {activeSolution.description}
-                  </Text>
+                <Text fontSize="sm" color="gray.600" lineHeight="1.7" mb={5}>
+                  {activeSolution.description}
+                </Text>
 
-                  <VStack align="stretch" gap={3} mb={6}>
-                    {activeSolution.features.map((feature, index) => (
-                      <HStack key={index} gap={3}>
-                        <Box
-                          p={1}
-                          bg="brand.100"
-                          borderRadius="full"
-                          color="brand.600"
+                <VStack align="stretch" gap={2} mb={5}>
+                  {activeSolution.features.map((feature, index) => (
+                    <HStack key={index} gap={2}>
+                      <Box
+                        p={0.5}
+                        bg="brand.100"
+                        borderRadius="full"
+                        color="brand.600"
+                      >
+                        <svg
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="3"
                         >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="3"
-                          >
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                        </Box>
-                        <Text fontSize="sm" color="gray.700">
-                          {feature}
-                        </Text>
-                      </HStack>
-                    ))}
-                  </VStack>
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </Box>
+                      <Text fontSize="sm" color="gray.700">
+                        {feature}
+                      </Text>
+                    </HStack>
+                  ))}
+                </VStack>
 
-                  <Link href="/sign-up">
-                    <Button
-                      size="lg"
-                      width="full"
-                      bg="brand.600"
-                      color="white"
-                      _hover={{
-                        bg: "brand.700",
-                        transform: "translateY(-2px)",
-                      }}
-                      transition="all 0.2s"
-                    >
-                      Get Started Free
-                    </Button>
-                  </Link>
-                </Box>
+                <Link href="/sign-up">
+                  <Button
+                    size="lg"
+                    width="full"
+                    bg="brand.600"
+                    color="white"
+                    _hover={{
+                      bg: "brand.700",
+                      transform: "translateY(-2px)",
+                    }}
+                    transition="all 0.2s"
+                  >
+                    Get Started Free
+                  </Button>
+                </Link>
               </Box>
-
-              {/* Dashboard visualization */}
-              <FadeIn delay={0.3} direction="up">
-                <DashboardVisualization activeSolution={activeSolution} />
-              </FadeIn>
             </Box>
           </FadeIn>
         </Grid>
 
+        {/* Full-width dashboard mockup */}
+        <FadeIn delay={0.3} direction="up">
+          <FullWidthDashboard activeSolution={activeSolution} />
+        </FadeIn>
+
         {/* Bottom CTA */}
-        <FadeIn delay={0.5}>
+        <FadeIn delay={0.4}>
           <Box
-            mt={{ base: 16, md: 24 }}
+            mt={{ base: 12, md: 16 }}
             p={{ base: 8, md: 12 }}
             bg="gray.900"
             borderRadius="2xl"

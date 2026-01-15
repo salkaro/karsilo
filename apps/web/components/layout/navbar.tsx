@@ -60,16 +60,23 @@ export function Navbar({
   return (
     <Box
       as="nav"
-      bg="rgba(255, 255, 255, 0.8)"
+      bg="rgba(255, 255, 255, 0.7)"
       backdropFilter="blur(10px)"
       borderBottom="1px"
       borderColor="gray.100"
-      position="sticky"
+      position="fixed"
       top={0}
+      left={0}
+      right={0}
       zIndex={1000}
     >
       <Container maxW="container.xl">
-        <Flex h={16} alignItems="center" justifyContent="space-between" position="relative">
+        <Flex
+          h={16}
+          alignItems="center"
+          justifyContent="space-between"
+          position="relative"
+        >
           {/* Logo */}
           <Flex alignItems="center" zIndex={2}>
             <Link

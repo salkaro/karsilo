@@ -173,11 +173,16 @@ export function LandingHero() {
       as="section"
       position="relative"
       overflow="hidden"
-      py={{ base: 16, md: 24 }}
+      py={{ base: 8, md: 24 }}
     >
       <GradientBackground />
 
-      <Container maxW="container.xl" position="relative" zIndex={1} pt={20}>
+      <Container
+        maxW="container.xl"
+        position="relative"
+        zIndex={1}
+        pt={{ base: 8, md: 20 }}
+      >
         <Grid
           templateColumns={{ base: "1fr", lg: "1fr 1fr" }}
           gap={{ base: 12, lg: 16 }}

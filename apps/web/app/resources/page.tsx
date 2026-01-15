@@ -554,8 +554,74 @@ export default function ResourcesPage() {
     filteredResources.length > 0 || filteredHelpCategories.length > 0;
 
   return (
-    <Box as="section" py={{ base: 16, md: 24 }} bg="gray.50" minH="100vh">
-      <Container maxW="container.xl">
+    <Box
+      as="section"
+      py={{ base: 16, md: 24 }}
+      bg="gray.50"
+      minH="100vh"
+      position="relative"
+      overflow="hidden"
+    >
+      {/* Dot grid overlay */}
+      <Box
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
+        opacity={0.4}
+        backgroundImage="radial-gradient(circle at 2px 2px, #d1d5db 1px, transparent 0)"
+        backgroundSize="32px 32px"
+        pointerEvents="none"
+      />
+
+      {/* Decorative grey circles */}
+      <Box
+        position="absolute"
+        top="-80px"
+        left="-120px"
+        width="350px"
+        height="350px"
+        bg="gray.200"
+        opacity={0.3}
+        borderRadius="full"
+        pointerEvents="none"
+      />
+      <Box
+        position="absolute"
+        top="20%"
+        right="-150px"
+        width="400px"
+        height="400px"
+        bg="gray.200"
+        opacity={0.25}
+        borderRadius="full"
+        pointerEvents="none"
+      />
+      <Box
+        position="absolute"
+        bottom="10%"
+        left="5%"
+        width="180px"
+        height="180px"
+        bg="gray.300"
+        opacity={0.15}
+        borderRadius="full"
+        pointerEvents="none"
+      />
+      <Box
+        position="absolute"
+        bottom="-100px"
+        right="20%"
+        width="250px"
+        height="250px"
+        bg="gray.200"
+        opacity={0.2}
+        borderRadius="full"
+        pointerEvents="none"
+      />
+
+      <Container maxW="container.xl" position="relative" zIndex={1}>
         <FadeIn>
           <Flex direction="column" align="center" textAlign="center" mb={12}>
             <Box mb={4}>

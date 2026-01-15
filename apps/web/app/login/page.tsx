@@ -16,8 +16,74 @@ import Image from "next/image";
 
 export default function LoginPage() {
   return (
-    <Box minH="100vh" bg="gray.50">
-      <Flex minH="calc(100vh - 64px)" justify="center" align="center" p={6}>
+    <Box minH="100vh" bg="gray.50" position="relative" overflow="hidden">
+      {/* Dot grid overlay */}
+      <Box
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
+        opacity={0.4}
+        backgroundImage="radial-gradient(circle at 2px 2px, #d1d5db 1px, transparent 0)"
+        backgroundSize="32px 32px"
+        pointerEvents="none"
+      />
+
+      {/* Decorative grey circles */}
+      <Box
+        position="absolute"
+        top="-150px"
+        right="-100px"
+        width="400px"
+        height="400px"
+        bg="gray.200"
+        opacity={0.4}
+        borderRadius="full"
+        pointerEvents="none"
+      />
+      <Box
+        position="absolute"
+        bottom="-120px"
+        left="-80px"
+        width="350px"
+        height="350px"
+        bg="gray.200"
+        opacity={0.3}
+        borderRadius="full"
+        pointerEvents="none"
+      />
+      <Box
+        position="absolute"
+        top="30%"
+        left="-100px"
+        width="200px"
+        height="200px"
+        bg="gray.300"
+        opacity={0.2}
+        borderRadius="full"
+        pointerEvents="none"
+      />
+      <Box
+        position="absolute"
+        bottom="20%"
+        right="-60px"
+        width="180px"
+        height="180px"
+        bg="gray.200"
+        opacity={0.25}
+        borderRadius="full"
+        pointerEvents="none"
+      />
+
+      <Flex
+        minH="calc(100vh - 64px)"
+        justify="center"
+        align="center"
+        p={6}
+        position="relative"
+        zIndex={1}
+      >
         <Box maxW="md" width="full">
           <VStack align="stretch" gap={8}>
             <Flex direction="column" align="center" gap={4}>
@@ -77,8 +143,10 @@ export default function LoginPage() {
                     border="1px solid"
                     borderColor="gray.200"
                     _focus={{
+                      border: "2px solid",
                       borderColor: "brand.500",
-                      boxShadow: "0 0 0 1px var(--chakra-colors-brand-500)",
+                      boxShadow: "none",
+                      outline: "none",
                     }}
                   />
                 </Box>
@@ -103,8 +171,10 @@ export default function LoginPage() {
                     border="1px solid"
                     borderColor="gray.200"
                     _focus={{
+                      border: "2px solid",
                       borderColor: "brand.500",
-                      boxShadow: "0 0 0 1px var(--chakra-colors-brand-500)",
+                      boxShadow: "none",
+                      outline: "none",
                     }}
                   />
                 </Box>

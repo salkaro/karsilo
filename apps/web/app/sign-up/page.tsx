@@ -79,8 +79,10 @@ export default function SignUpPage() {
                     border="1px solid"
                     borderColor="gray.200"
                     _focus={{
+                      border: "2px solid",
                       borderColor: "brand.500",
-                      boxShadow: "0 0 0 1px var(--chakra-colors-brand-500)",
+                      boxShadow: "none",
+                      outline: "none",
                     }}
                   />
                 </Box>
@@ -103,8 +105,10 @@ export default function SignUpPage() {
                     border="1px solid"
                     borderColor="gray.200"
                     _focus={{
+                      border: "2px solid",
                       borderColor: "brand.500",
-                      boxShadow: "0 0 0 1px var(--chakra-colors-brand-500)",
+                      boxShadow: "none",
+                      outline: "none",
                     }}
                   />
                 </Box>
@@ -127,8 +131,10 @@ export default function SignUpPage() {
                     border="1px solid"
                     borderColor="gray.200"
                     _focus={{
+                      border: "2px solid",
                       borderColor: "brand.500",
-                      boxShadow: "0 0 0 1px var(--chakra-colors-brand-500)",
+                      boxShadow: "none",
+                      outline: "none",
                     }}
                   />
                   <Text fontSize="xs" color="gray.500" mt={1}>
@@ -220,8 +226,56 @@ export default function SignUpPage() {
           p={{ base: 6, md: 12 }}
           bg="brand.600"
           display={{ base: "none", lg: "flex" }}
+          position="relative"
+          overflow="hidden"
         >
-          <Box maxW="md">
+          {/* Decorative purple circles */}
+          <Box
+            position="absolute"
+            top="-100px"
+            right="-80px"
+            width="350px"
+            height="350px"
+            bg="brand.500"
+            opacity={0.3}
+            borderRadius="full"
+            pointerEvents="none"
+          />
+          <Box
+            position="absolute"
+            bottom="-120px"
+            left="-100px"
+            width="400px"
+            height="400px"
+            bg="brand.500"
+            opacity={0.25}
+            borderRadius="full"
+            pointerEvents="none"
+          />
+          <Box
+            position="absolute"
+            top="40%"
+            right="-60px"
+            width="200px"
+            height="200px"
+            bg="brand.400"
+            opacity={0.2}
+            borderRadius="full"
+            pointerEvents="none"
+          />
+          <Box
+            position="absolute"
+            bottom="20%"
+            left="-40px"
+            width="150px"
+            height="150px"
+            bg="brand.500"
+            opacity={0.15}
+            borderRadius="full"
+            pointerEvents="none"
+          />
+
+          <Box maxW="md" position="relative" zIndex={1}>
             <HStack gap={3} mb={8}>
               <Image
                 src="/KarsiloLogo.png"

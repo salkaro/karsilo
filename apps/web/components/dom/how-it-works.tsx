@@ -267,28 +267,41 @@ export function HowItWorks() {
       position="relative"
       overflow="hidden"
     >
-      {/* Decorative background elements */}
+      {/* Dot grid overlay */}
       <Box
         position="absolute"
-        top="10%"
-        left="-5%"
-        w="300px"
-        h="300px"
-        borderRadius="full"
-        bg="brand.100"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
         opacity={0.4}
-        filter="blur(80px)"
+        backgroundImage="radial-gradient(circle at 2px 2px, #d1d5db 1px, transparent 0)"
+        backgroundSize="32px 32px"
+        pointerEvents="none"
+      />
+
+      {/* Decorative grey circles */}
+      <Box
+        position="absolute"
+        top="-80px"
+        left="-100px"
+        width="300px"
+        height="300px"
+        bg="gray.200"
+        opacity={0.3}
+        borderRadius="full"
+        pointerEvents="none"
       />
       <Box
         position="absolute"
-        bottom="10%"
-        right="-5%"
-        w="400px"
-        h="400px"
+        bottom="-100px"
+        right="-80px"
+        width="350px"
+        height="350px"
+        bg="gray.200"
+        opacity={0.25}
         borderRadius="full"
-        bg="brand.200"
-        opacity={0.3}
-        filter="blur(100px)"
+        pointerEvents="none"
       />
 
       <Container maxW="container.xl" position="relative" zIndex={1}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -47,22 +47,9 @@ const solutions: Solution[] = [
     color: "brand",
     icon: (
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-        <circle cx="24" cy="16" r="8" stroke="currentColor" strokeWidth="2" />
+        <circle cx="24" cy="14" r="7" stroke="currentColor" strokeWidth="2" />
         <path
-          d="M8 42v-4a12 12 0 0 1 12-12h8a12 12 0 0 1 12 12v4"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <path
-          d="M35 10l4 4-4 4"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M39 14h-8"
+          d="M12 40v-3a12 12 0 0 1 24 0v3"
           stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
@@ -90,11 +77,23 @@ const solutions: Solution[] = [
     color: "purple",
     icon: (
       <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-        <circle cx="16" cy="16" r="6" stroke="currentColor" strokeWidth="2" />
-        <circle cx="32" cy="16" r="6" stroke="currentColor" strokeWidth="2" />
-        <circle cx="24" cy="32" r="6" stroke="currentColor" strokeWidth="2" />
+        <circle cx="24" cy="10" r="5" stroke="currentColor" strokeWidth="2" />
+        <circle cx="12" cy="26" r="5" stroke="currentColor" strokeWidth="2" />
+        <circle cx="36" cy="26" r="5" stroke="currentColor" strokeWidth="2" />
         <path
-          d="M16 22v4a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4v-4"
+          d="M24 15v6"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M24 21l-9 5M24 21l9 5"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M7 40v-2a5 5 0 0 1 5-5h0a5 5 0 0 1 5 5v2M31 40v-2a5 5 0 0 1 5-5h0a5 5 0 0 1 5 5v2"
           stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
@@ -377,243 +376,340 @@ function DashboardVisualization({
   );
 }
 
-// Animated floating graphic for desktop
+// Animated graphic showing sales flowing into a central collection
 function FloatingGraphic() {
+  const [total, setTotal] = useState(15700);
+
+  // Animate the total up and down
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const change = Math.floor(Math.random() * 200) - 50;
+      setTotal((prev) => Math.max(14000, Math.min(17000, prev + change)));
+    }, 800);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTotal = (value: number) => {
+    if (value >= 1000) {
+      return `$${(value / 1000).toFixed(1)}K`;
+    }
+    return `$${value}`;
+  };
+
   return (
     <Box
       display={{ base: "none", lg: "block" }}
       position="relative"
-      mt={8}
-      height="200px"
+      mt={6}
+      height="280px"
     >
       <style>
         {`
-          @keyframes orbit1 {
-            0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
-            100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+          @keyframes sale1 {
+            0% { transform: translate(0, 0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(140px, 80px) scale(0.5); opacity: 0; }
           }
-          @keyframes orbit2 {
-            0% { transform: rotate(120deg) translateX(80px) rotate(-120deg); }
-            100% { transform: rotate(480deg) translateX(80px) rotate(-480deg); }
+          @keyframes sale2 {
+            0% { transform: translate(0, 0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(90px, -20px) scale(0.5); opacity: 0; }
           }
-          @keyframes orbit3 {
-            0% { transform: rotate(240deg) translateX(50px) rotate(-240deg); }
-            100% { transform: rotate(600deg) translateX(50px) rotate(-600deg); }
+          @keyframes sale3 {
+            0% { transform: translate(0, 0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(-100px, 60px) scale(0.5); opacity: 0; }
           }
-          @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.6; }
-            50% { transform: scale(1.1); opacity: 1; }
+          @keyframes sale4 {
+            0% { transform: translate(0, 0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(-80px, -40px) scale(0.5); opacity: 0; }
           }
-          @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+          @keyframes sale5 {
+            0% { transform: translate(0, 0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(60px, 100px) scale(0.5); opacity: 0; }
           }
-          @keyframes dashMove {
-            0% { stroke-dashoffset: 0; }
-            100% { stroke-dashoffset: -20; }
+          @keyframes sale6 {
+            0% { transform: translate(0, 0) scale(1); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translate(-120px, -10px) scale(0.5); opacity: 0; }
+          }
+          @keyframes centerPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.02); }
+          }
+          @keyframes ringPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.1; }
           }
         `}
       </style>
 
-      {/* Central hub */}
+      {/* Outer ring */}
       <Box
         position="absolute"
         left="50%"
         top="50%"
-        transform="translate(-50%, -50%)"
-        width="24px"
-        height="24px"
-        borderRadius="full"
-        bg="brand.600"
-        boxShadow="0 0 30px rgba(139, 92, 246, 0.5)"
-        style={{ animation: "pulse 2s ease-in-out infinite" }}
-      />
-
-      {/* Orbital ring */}
-      <Box
-        position="absolute"
-        left="50%"
-        top="50%"
-        transform="translate(-50%, -50%)"
-        width="160px"
-        height="160px"
-        borderRadius="full"
-        border="1px dashed"
-        borderColor="brand.200"
-        opacity={0.5}
-      />
-
-      {/* Orbiting dots */}
-      <Box
-        position="absolute"
-        left="50%"
-        top="50%"
-        width="16px"
-        height="16px"
-        marginLeft="-8px"
-        marginTop="-8px"
-        style={{ animation: "orbit1 8s linear infinite" }}
-      >
-        <Box
-          width="16px"
-          height="16px"
-          borderRadius="full"
-          bg="#8b5cf6"
-          boxShadow="0 0 15px rgba(139, 92, 246, 0.6)"
-        />
-      </Box>
-
-      <Box
-        position="absolute"
-        left="50%"
-        top="50%"
-        width="12px"
-        height="12px"
-        marginLeft="-6px"
-        marginTop="-6px"
-        style={{ animation: "orbit2 12s linear infinite" }}
-      >
-        <Box
-          width="12px"
-          height="12px"
-          borderRadius="full"
-          bg="#3b82f6"
-          boxShadow="0 0 12px rgba(59, 130, 246, 0.6)"
-        />
-      </Box>
-
-      <Box
-        position="absolute"
-        left="50%"
-        top="50%"
-        width="10px"
-        height="10px"
-        marginLeft="-5px"
-        marginTop="-5px"
-        style={{ animation: "orbit3 6s linear infinite" }}
-      >
-        <Box
-          width="10px"
-          height="10px"
-          borderRadius="full"
-          bg="#10b981"
-          boxShadow="0 0 10px rgba(16, 185, 129, 0.6)"
-        />
-      </Box>
-
-      {/* Floating data points */}
-      <Box
-        position="absolute"
-        left="15%"
-        top="30%"
-        style={{ animation: "float 3s ease-in-out infinite" }}
-      >
-        <Box
-          width="8px"
-          height="8px"
-          borderRadius="full"
-          bg="brand.400"
-          opacity={0.7}
-        />
-      </Box>
-
-      <Box
-        position="absolute"
-        right="20%"
-        top="25%"
-        style={{ animation: "float 4s ease-in-out infinite 0.5s" }}
-      >
-        <Box
-          width="6px"
-          height="6px"
-          borderRadius="full"
-          bg="brand.300"
-          opacity={0.5}
-        />
-      </Box>
-
-      <Box
-        position="absolute"
-        left="25%"
-        bottom="20%"
-        style={{ animation: "float 3.5s ease-in-out infinite 1s" }}
-      >
-        <Box
-          width="10px"
-          height="10px"
-          borderRadius="full"
-          bg="brand.500"
-          opacity={0.6}
-        />
-      </Box>
-
-      <Box
-        position="absolute"
-        right="15%"
-        bottom="30%"
-        style={{ animation: "float 2.5s ease-in-out infinite 0.3s" }}
-      >
-        <Box
-          width="7px"
-          height="7px"
-          borderRadius="full"
-          bg="blue.400"
-          opacity={0.5}
-        />
-      </Box>
-
-      {/* Connection lines SVG */}
-      <Box
-        position="absolute"
-        left="50%"
-        top="50%"
-        transform="translate(-50%, -50%)"
         width="200px"
         height="200px"
-        opacity={0.3}
+        borderRadius="full"
+        border="2px dashed"
+        borderColor="brand.200"
+        style={{ animation: "ringPulse 3s ease-in-out infinite" }}
+      />
+
+      {/* Sale 1 - Top left - Product A */}
+      <Box
+        position="absolute"
+        left="20px"
+        top="30px"
+        style={{ animation: "sale1 3s ease-in-out infinite" }}
       >
-        <svg width="200" height="200" viewBox="0 0 200 200">
-          <line
-            x1="100"
-            y1="100"
-            x2="30"
-            y2="60"
-            stroke="#8b5cf6"
-            strokeWidth="1"
-            strokeDasharray="4 4"
-            style={{ animation: "dashMove 2s linear infinite" }}
-          />
-          <line
-            x1="100"
-            y1="100"
-            x2="170"
-            y2="50"
-            stroke="#8b5cf6"
-            strokeWidth="1"
-            strokeDasharray="4 4"
-            style={{ animation: "dashMove 2s linear infinite 0.5s" }}
-          />
-          <line
-            x1="100"
-            y1="100"
-            x2="50"
-            y2="160"
-            stroke="#8b5cf6"
-            strokeWidth="1"
-            strokeDasharray="4 4"
-            style={{ animation: "dashMove 2s linear infinite 1s" }}
-          />
-          <line
-            x1="100"
-            y1="100"
-            x2="160"
-            y2="140"
-            stroke="#8b5cf6"
-            strokeWidth="1"
-            strokeDasharray="4 4"
-            style={{ animation: "dashMove 2s linear infinite 1.5s" }}
-          />
-        </svg>
+        <Box
+          bg="white"
+          borderRadius="lg"
+          px={2}
+          py={1.5}
+          boxShadow="md"
+          border="1px solid"
+          borderColor="green.200"
+        >
+          <VStack gap={0} align="start">
+            <Text fontSize="2xs" color="gray.400" lineHeight="1">
+              Product A
+            </Text>
+            <HStack gap={1.5}>
+              <Box
+                width="6px"
+                height="6px"
+                borderRadius="full"
+                bg="green.400"
+              />
+              <Text fontSize="xs" fontWeight="semibold" color="green.600">
+                +$49
+              </Text>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
+
+      {/* Sale 2 - Bottom left - Product B */}
+      <Box
+        position="absolute"
+        left="40px"
+        bottom="40px"
+        style={{ animation: "sale2 3.5s ease-in-out infinite 0.5s" }}
+      >
+        <Box
+          bg="white"
+          borderRadius="lg"
+          px={2}
+          py={1.5}
+          boxShadow="md"
+          border="1px solid"
+          borderColor="green.200"
+        >
+          <VStack gap={0} align="start">
+            <Text fontSize="2xs" color="gray.400" lineHeight="1">
+              Product B
+            </Text>
+            <HStack gap={1.5}>
+              <Box
+                width="6px"
+                height="6px"
+                borderRadius="full"
+                bg="green.400"
+              />
+              <Text fontSize="xs" fontWeight="semibold" color="green.600">
+                +$129
+              </Text>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
+
+      {/* Sale 3 - Top right - Product C */}
+      <Box
+        position="absolute"
+        right="30px"
+        top="20px"
+        style={{ animation: "sale3 2.8s ease-in-out infinite 1s" }}
+      >
+        <Box
+          bg="white"
+          borderRadius="lg"
+          px={2}
+          py={1.5}
+          boxShadow="md"
+          border="1px solid"
+          borderColor="green.200"
+        >
+          <VStack gap={0} align="start">
+            <Text fontSize="2xs" color="gray.400" lineHeight="1">
+              Product C
+            </Text>
+            <HStack gap={1.5}>
+              <Box
+                width="6px"
+                height="6px"
+                borderRadius="full"
+                bg="green.400"
+              />
+              <Text fontSize="xs" fontWeight="semibold" color="green.600">
+                +$79
+              </Text>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
+
+      {/* Sale 4 - Bottom right - Product D */}
+      <Box
+        position="absolute"
+        right="20px"
+        bottom="60px"
+        style={{ animation: "sale4 3.2s ease-in-out infinite 1.5s" }}
+      >
+        <Box
+          bg="white"
+          borderRadius="lg"
+          px={2}
+          py={1.5}
+          boxShadow="md"
+          border="1px solid"
+          borderColor="green.200"
+        >
+          <VStack gap={0} align="start">
+            <Text fontSize="2xs" color="gray.400" lineHeight="1">
+              Product D
+            </Text>
+            <HStack gap={1.5}>
+              <Box
+                width="6px"
+                height="6px"
+                borderRadius="full"
+                bg="green.400"
+              />
+              <Text fontSize="xs" fontWeight="semibold" color="green.600">
+                +$199
+              </Text>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
+
+      {/* Sale 5 - Left middle - Product E */}
+      <Box
+        position="absolute"
+        left="10px"
+        top="50%"
+        style={{ animation: "sale5 2.5s ease-in-out infinite 2s" }}
+      >
+        <Box
+          bg="white"
+          borderRadius="lg"
+          px={2}
+          py={1.5}
+          boxShadow="md"
+          border="1px solid"
+          borderColor="green.200"
+        >
+          <VStack gap={0} align="start">
+            <Text fontSize="2xs" color="gray.400" lineHeight="1">
+              Product E
+            </Text>
+            <HStack gap={1.5}>
+              <Box
+                width="6px"
+                height="6px"
+                borderRadius="full"
+                bg="green.400"
+              />
+              <Text fontSize="xs" fontWeight="semibold" color="green.600">
+                +$29
+              </Text>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
+
+      {/* Sale 6 - Right middle-top - Product F */}
+      <Box
+        position="absolute"
+        right="10px"
+        top="35%"
+        style={{ animation: "sale6 3.8s ease-in-out infinite 2.5s" }}
+      >
+        <Box
+          bg="white"
+          borderRadius="lg"
+          px={2}
+          py={1.5}
+          boxShadow="md"
+          border="1px solid"
+          borderColor="green.200"
+        >
+          <VStack gap={0} align="start">
+            <Text fontSize="2xs" color="gray.400" lineHeight="1">
+              Product F
+            </Text>
+            <HStack gap={1.5}>
+              <Box
+                width="6px"
+                height="6px"
+                borderRadius="full"
+                bg="green.400"
+              />
+              <Text fontSize="xs" fontWeight="semibold" color="green.600">
+                +$99
+              </Text>
+            </HStack>
+          </VStack>
+        </Box>
+      </Box>
+
+      {/* Central collection pot */}
+      <Box
+        position="absolute"
+        left="50%"
+        top="50%"
+        style={{ animation: "centerPulse 2s ease-in-out infinite" }}
+      >
+        <Box
+          bg="brand.600"
+          borderRadius="full"
+          width="90px"
+          height="90px"
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          boxShadow="0 10px 40px rgba(139, 92, 246, 0.4)"
+        >
+          <Text
+            fontSize="xs"
+            color="whiteAlpha.800"
+            fontWeight="medium"
+            mb={-0.5}
+          >
+            Total
+          </Text>
+          <Text
+            fontSize="lg"
+            fontWeight="bold"
+            color="white"
+            style={{ transition: "all 0.3s ease" }}
+          >
+            {formatTotal(total)}
+          </Text>
+        </Box>
       </Box>
     </Box>
   );
@@ -790,32 +886,29 @@ function GradientBackground() {
         <defs>
           <linearGradient id="bgGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#f5f3ff" />
-            <stop offset="50%" stopColor="#faf5ff" />
-            <stop offset="100%" stopColor="#f3e8ff" />
+            <stop offset="50%" stopColor="#ede9fe" />
+            <stop offset="100%" stopColor="#ddd6fe" />
           </linearGradient>
-          <radialGradient id="bgGrad2" cx="30%" cy="30%" r="50%">
-            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="bgGrad3" cx="70%" cy="70%" r="40%">
-            <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.06" />
-            <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
-          </radialGradient>
+          <linearGradient id="bgGrad2" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.1" />
+            <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.05" />
+          </linearGradient>
         </defs>
         <rect width="100%" height="100%" fill="url(#bgGrad1)" />
-        <rect width="100%" height="100%" fill="url(#bgGrad2)" />
-        <rect width="100%" height="100%" fill="url(#bgGrad3)" />
+        <circle cx="20%" cy="30%" r="300" fill="url(#bgGrad2)" />
+        <circle cx="80%" cy="70%" r="400" fill="url(#bgGrad2)" />
+        <circle cx="60%" cy="10%" r="250" fill="url(#bgGrad2)" />
       </svg>
-      {/* Decorative grid */}
+      {/* Decorative grid lines */}
       <Box
         position="absolute"
         top={0}
         left={0}
         right={0}
         bottom={0}
-        opacity={0.3}
-        backgroundImage="linear-gradient(to right, #e9d5ff 1px, transparent 1px), linear-gradient(to bottom, #e9d5ff 1px, transparent 1px)"
-        backgroundSize="60px 60px"
+        opacity={0.4}
+        backgroundImage="linear-gradient(to right, #d0d5dd 1px, transparent 1px), linear-gradient(to bottom, #d0d5dd 1px, transparent 1px)"
+        backgroundSize="80px 80px"
       />
     </Box>
   );

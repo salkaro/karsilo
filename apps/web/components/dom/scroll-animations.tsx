@@ -16,7 +16,7 @@ export function FadeIn({
   children,
   delay = 0,
   direction = "up",
-  duration = 0.6,
+  duration = 0.4,
   height,
 }: FadeInProps) {
   const [isVisible, setIsVisible] = useState(false);
@@ -30,7 +30,7 @@ export function FadeIn({
           observer.disconnect();
         }
       },
-      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
+      { threshold: 0.05, rootMargin: "50px 0px 0px 0px" },
     );
 
     if (ref.current) {
@@ -44,13 +44,13 @@ export function FadeIn({
     if (isVisible) return "translate3d(0, 0, 0)";
     switch (direction) {
       case "up":
-        return "translate3d(0, 40px, 0)";
+        return "translate3d(0, 20px, 0)";
       case "down":
-        return "translate3d(0, -40px, 0)";
+        return "translate3d(0, -20px, 0)";
       case "left":
-        return "translate3d(40px, 0, 0)";
+        return "translate3d(20px, 0, 0)";
       case "right":
-        return "translate3d(-40px, 0, 0)";
+        return "translate3d(-20px, 0, 0)";
       default:
         return "translate3d(0, 0, 0)";
     }

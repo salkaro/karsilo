@@ -1,4 +1,4 @@
-import { Box} from "@repo/ui"
+import Page from "@/components/main/customers/Page";
 
 import { Metadata } from "next";
 
@@ -22,7 +22,6 @@ export const metadata: Metadata = {
 
 export default function CustomersPage() {
     return (
-        <Box>
-        </Box>
+        <Page />
     )
 }

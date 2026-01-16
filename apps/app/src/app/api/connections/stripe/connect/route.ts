@@ -13,6 +13,9 @@ export async function GET(request: NextRequest) {
             );
         }
 
+        const searchParams = request.nextUrl.searchParams;
+        const entityId = searchParams.get("entityId");
+
         const stripeClientId = process.env.STRIPE_CLIENT_ID;
         const redirectUri = process.env.STRIPE_OAUTH_REDIRECT_URI;
 
@@ -23,11 +26,12 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        // Generate state parameter for CSRF protection
+        // Generate state parameter for CSRF protection (includes entityId if provided)
         const state = Buffer.from(
             JSON.stringify({
                 userId: session.user.id,
                 timestamp: Date.now(),
+                entityId: entityId || null,
             })
         ).toString("base64");
 

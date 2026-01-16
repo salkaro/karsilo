@@ -14,6 +14,7 @@ export async function createConnection({
     stripeAccountId,
     googleEmail,
     expiresAt,
+    entityId,
 }: {
     organisationId: string;
     type: ConnectionType;
@@ -23,6 +24,7 @@ export async function createConnection({
     stripeAccountId?: string;
     googleEmail?: string;
     expiresAt?: number;
+    entityId?: string;
 }): Promise<IConnection | null> {
     try {
         // Use subcollection path: organisations/{organisationId}/connections
@@ -39,6 +41,7 @@ export async function createConnection({
             ...(refreshToken && { refreshToken: encrypt(refreshToken) }),
             ...(stripeAccountId && { stripeAccountId }),
             ...(googleEmail && { googleEmail }),
+            ...(entityId && { entityId }),
             connectedAt: now,
             lastSyncedAt: now,
             ...(expiresAt && { expiresAt }),

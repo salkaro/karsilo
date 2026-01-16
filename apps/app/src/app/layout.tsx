@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 // Styles
 import { Inter } from "next/font/google";
 import "@/styles/globals.css"
+import "@/styles/animations.css"
 
 
 const inter = Inter({

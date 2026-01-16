@@ -1,16 +1,16 @@
 "use client";
 
 // External Imports
+import Stripe from "stripe";
 import { useState, useEffect, useCallback } from "react";
 
 // Local Imports
+import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";
+import { extractOneTimeOrRecurring } from "@/services/stripe/utils";
 import { retrieveStripePayments } from "@/services/stripe/retrieve";
 import { retrieveAllConnections } from "@/services/connections/retrieve";
-import { paymentsCookieKey } from "@/constants/cookies";
-import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";
+import { chargesCookieKey } from "@/constants/cookies";
 import { ICharge } from "@/models/charge";
-import Stripe from "stripe";
-import { extractOneTimeOrRecurring } from "@/services/stripe/utils";
 
 interface UseChargesReturn {
     chargesByConnection: Record<string, ICharge[]> | null;
@@ -56,8 +56,8 @@ export function useCharges(params: UseChargesParams | string | null): UseCharges
                 const dateRangeSuffix = from !== undefined || to !== undefined
                     ? `_${from !== undefined ? new Date(from * 1000).toISOString().split('T')[0] : 'start'}_${to !== undefined ? new Date(to * 1000).toISOString().split('T')[0] : 'end'}`
                     : '';
-                const cookieKey = `${organisationId}_${paymentsCookieKey}${dateRangeSuffix}`;
-                console.log(cookieKey)
+                const cookieKey = `${organisationId}_${chargesCookieKey}${dateRangeSuffix}`;
+
                 // Step 1: Try sessionStorage cache
                 if (!reload) {
                     const cached = getSessionStorage(cookieKey);
@@ -219,7 +219,7 @@ export function useCharges(params: UseChargesParams | string | null): UseCharges
             const dateRangeSuffix = from !== undefined || to !== undefined
                 ? `_${from !== undefined ? new Date(from * 1000).toISOString().split('T')[0] : 'start'}_${to !== undefined ? new Date(to * 1000).toISOString().split('T')[0] : 'end'}`
                 : '';
-            const cookieKey = `${organisationId}_${paymentsCookieKey}${dateRangeSuffix}`;
+            const cookieKey = `${organisationId}_${chargesCookieKey}${dateRangeSuffix}`;
             setSessionStorage(cookieKey, JSON.stringify(updatedChargesDict));
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to load more charges");

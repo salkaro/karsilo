@@ -39,24 +39,24 @@ const EntityTable: React.FC<Props> = ({ organisationId, entities, connections, r
 
     return (
         <>
-            <Card.Root>
-                <Table.Root size="lg" variant="outline" striped>
-                    <Table.Header>
-                        <Table.Row>
-                            <Table.ColumnHeader>Entity</Table.ColumnHeader>
-                            <Table.ColumnHeader>Description</Table.ColumnHeader>
-                            <Table.ColumnHeader>Connections</Table.ColumnHeader>
-                            <Table.ColumnHeader>Created</Table.ColumnHeader>
-                            <Table.ColumnHeader></Table.ColumnHeader>
+            <Card.Root border="none">
+                <Table.Root size="md" colorScheme="gray" border="none">
+                    <Table.Header border="none">
+                        <Table.Row bg="gray.50" border="none">
+                            <Table.ColumnHeader border="none" roundedLeft="full">Entity</Table.ColumnHeader>
+                            <Table.ColumnHeader border="none">Description</Table.ColumnHeader>
+                            <Table.ColumnHeader border="none">Connections</Table.ColumnHeader>
+                            <Table.ColumnHeader border="none">Created</Table.ColumnHeader>
+                            <Table.ColumnHeader border="none" roundedRight="full"></Table.ColumnHeader>
                         </Table.Row>
                     </Table.Header>
-                    <Table.Body>
-                        {entities.map((entity) => {
-                            const connection = connections?.filter(c => c.entityId !== entity.id)[0];
-
+                    <Table.Body border="none">
+                        {entities.map((entity, index) => {
+                            const connection = connections?.filter(c => c.entityId === entity.id)[0];
+                    
                             return (
                                 <Table.Row key={entity.id}>
-                                    <Table.Cell>
+                                    <Table.Cell border={index === entities.length - 1 ? "none" : ""}>
                                         <HStack gap={3}>
                                             <Avatar.Root size="md">
                                                 <Avatar.Image
@@ -77,13 +77,13 @@ const EntityTable: React.FC<Props> = ({ organisationId, entities, connections, r
                                         </HStack>
                                     </Table.Cell>
 
-                                    <Table.Cell maxW="300px">
+                                    <Table.Cell border={index === entities.length - 1 ? "none" : ""} maxW="300px">
                                         <Text lineClamp={2} color="fg.muted">
                                             {entity.description || '—'}
                                         </Text>
                                     </Table.Cell>
 
-                                    <Table.Cell>
+                                    <Table.Cell border={index === entities.length - 1 ? "none" : ""}>
                                         <HStack gap={2}>
                                             <ManageConnectionDialog
                                                 entity={entity}
@@ -93,13 +93,13 @@ const EntityTable: React.FC<Props> = ({ organisationId, entities, connections, r
                                         </HStack>
                                     </Table.Cell>
 
-                                    <Table.Cell>
+                                    <Table.Cell border={index === entities.length - 1 ? "none" : ""}>
                                         <Text fontSize="sm" color="fg.muted">
                                             {formatDate(entity.createdAt)}
                                         </Text>
                                     </Table.Cell>
 
-                                    <Table.Cell textAlign="right">
+                                    <Table.Cell border={index === entities.length - 1 ? "none" : ""} textAlign="right">
                                         <HStack gap={2} justify="flex-end">
                                             <MenuRoot>
                                                 <MenuTrigger asChild>

@@ -1,6 +1,6 @@
 
 import { LayoutGridIcon } from "@/icons/icons";
-import { LucideIcon, UserRound, Wallet, Store, Table2, FilePlusCorner, UsersRound, ArrowLeftRight, UserLock, FileChartPie } from "lucide-react";
+import { LucideIcon, UserRound, Wallet, Store, Table2, FilePlusCorner, UsersRound, ArrowLeftRight, UserLock, FileChartPie, Building2 } from "lucide-react";
 
 
 export interface IItem {
@@ -59,9 +59,9 @@ export const sidebarItems = {
             type: "page" as const
         },
         {
-            title: "Connections",
-            url: "/connections",
-            icon: LayoutGridIcon,
+            title: "Entities",
+            url: "/entities",
+            icon: Building2,
             description: "Overview of connected apps",
             type: "page" as const
         },

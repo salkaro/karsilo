@@ -1,7 +1,5 @@
-import NotFoundInfo from "@/components/ui/not-found";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-    return (
-        <NotFoundInfo />
-    );
+    redirect("/login");
 }

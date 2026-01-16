@@ -6,6 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { retrieveUserAdmin } from "@/services/firebase/admin-retrieve";
 import { IStripeOAuthToken } from "@/models/connection";
 import { createConnection } from "@/services/connections/create";
+import { updateEntity } from "@/services/firebase/entities/update";
 import { root, isProduction } from "@/constants/site";
 
 export async function GET(request: NextRequest) {
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Verify state parameter
-        let stateData: { userId: string; timestamp: number };
+        let stateData: { userId: string; timestamp: number; entityId?: string | null };
         try {
             stateData = JSON.parse(Buffer.from(state, "base64").toString());
         } catch {
@@ -77,13 +78,25 @@ export async function GET(request: NextRequest) {
         }
 
         // Store the connection in Firebase
-        await createConnection({
+        const connection = await createConnection({
             organisationId: user.organisation.id,
             type: "stripe",
             accessToken: tokenData.access_token,
             refreshToken: tokenData.refresh_token,
             stripeAccountId: tokenData.stripe_user_id,
+            entityId: stateData.entityId || undefined,
         });
+
+        // If entityId was provided, attach the connection to the entity
+        if (stateData.entityId && connection?.id) {
+            await updateEntity({
+                organisationId: user.organisation.id,
+                entityId: stateData.entityId,
+                connections: {
+                    stripeConnectionId: connection.id,
+                },
+            });
+        }
 
         // Redirect back to connections page with success message
         return NextResponse.redirect(

@@ -39,10 +39,8 @@ interface NavbarProps {
 
 const defaultLinks: (NavLink | NavDropdown)[] = [
   { label: "Plans", href: "/plans" },
-  { label: "Resources", href: "/resources" },
   { label: "Solutions", href: "/solutions" },
-  { label: "Blog", href: "/blog" },
-  { label: "Help", href: "/help" },
+  { label: "Resources", href: "/resources" },
 ];
 
 const isDropdown = (link: NavLink | NavDropdown): link is NavDropdown => {
@@ -62,28 +60,47 @@ export function Navbar({
   return (
     <Box
       as="nav"
-      bg="rgba(255, 255, 255, 0.8)"
+      bg="rgba(255, 255, 255, 0.7)"
       backdropFilter="blur(10px)"
       borderBottom="1px"
       borderColor="gray.100"
-      position="sticky"
+      position="fixed"
       top={0}
+      left={0}
+      right={0}
       zIndex={1000}
     >
       <Container maxW="container.xl">
-        <Flex h={16} alignItems="center" justifyContent="space-between">
+        <Flex
+          h={16}
+          alignItems="center"
+          justifyContent="space-between"
+          position="relative"
+        >
           {/* Logo */}
-          <Flex alignItems="center">
-            <Link href="/" textDecoration="none">
+          <Flex alignItems="center" zIndex={2}>
+            <Link
+              href="/"
+              textDecoration="none"
+              _focus={{ outline: "none", boxShadow: "none" }}
+              _focusVisible={{ outline: "none", boxShadow: "none" }}
+              userSelect="none"
+            >
               {logo || (
-                <HStack gap={2}>
+                <HStack gap={2} userSelect="none">
                   <Image
                     src="/KarsiloLogo.png"
                     alt="Karsilo"
                     width={32}
                     height={32}
+                    draggable={false}
                   />
-                  <Text fontSize="xl" fontWeight="bold" color="gray.800">
+                  <Text
+                    fontSize="xl"
+                    fontWeight="bold"
+                    color="gray.800"
+                    userSelect="none"
+                  >
                     Karsilo
                   </Text>
                 </HStack>
@@ -91,8 +108,15 @@ export function Navbar({
             </Link>
           </Flex>
 
-          {/* Desktop Navigation */}
-          <HStack as="nav" gap={1} className="md:flex gap-4">
+          {/* Desktop Navigation - Centered */}
+          <HStack
+            as="nav"
+            gap={1}
+            display={{ base: "none", md: "flex" }}
+            position="absolute"
+            left="50%"
+            transform="translateX(-50%)"
+          >
             {links.map((link, index) => {
               if (isDropdown(link)) {
                 return (
@@ -136,7 +160,7 @@ export function Navbar({
           </HStack>
 
           {/* CTA Buttons - Desktop */}
-          <HStack gap={2} display={{ base: "none", md: "flex" }}>
+          <HStack gap={2} display={{ base: "none", md: "flex" }} zIndex={2}>
             {ctaButtons.secondary && (
               <Link href={ctaButtons.secondary.href} textDecoration="none">
                 <Button variant="outline" size="md" fontWeight="normal">

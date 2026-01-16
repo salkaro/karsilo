@@ -13,6 +13,7 @@ import {
   GridItem,
 } from "@repo/ui/index";
 import Link from "next/link";
+import { FadeIn } from "./scroll-animations";
 
 // Tilt card component - tilted by default, straightens on hover
 function TiltCard({
@@ -172,11 +173,16 @@ export function LandingHero() {
       as="section"
       position="relative"
       overflow="hidden"
-      py={{ base: 16, md: 24 }}
+      py={{ base: 8, md: 24 }}
     >
       <GradientBackground />
 
-      <Container maxW="container.xl" position="relative" zIndex={1} pt={20}>
+      <Container
+        maxW="container.xl"
+        position="relative"
+        zIndex={1}
+        pt={{ base: 8, md: 20 }}
+      >
         <Grid
           templateColumns={{ base: "1fr", lg: "1fr 1fr" }}
           gap={{ base: 12, lg: 16 }}
@@ -186,249 +192,268 @@ export function LandingHero() {
           <GridItem>
             <Flex direction="column" gap={6}>
               {/* Badge */}
-              <Box
-                display="inline-flex"
-                alignItems="center"
-                gap={2}
-                px={4}
-                py={2}
-                bg="brand.100"
-                borderRadius="full"
-                width="fit-content"
-              >
+              <FadeIn delay={0}>
                 <Box
-                  w={2}
-                  h={2}
+                  display="inline-flex"
+                  alignItems="center"
+                  gap={2}
+                  px={4}
+                  py={2}
+                  bg="brand.100"
                   borderRadius="full"
-                  bg="brand.500"
-                  animation="pulse 2s infinite"
-                />
-                <Text fontSize="sm" fontWeight="medium" color="brand.700">
-                  Multi-Stripe Account Management
-                </Text>
-              </Box>
+                  width="fit-content"
+                >
+                  <Box
+                    w={2}
+                    h={2}
+                    borderRadius="full"
+                    bg="brand.500"
+                    animation="pulse 2s infinite"
+                  />
+                  <Text fontSize="sm" fontWeight="medium" color="brand.700">
+                    Multi-Stripe Account Management
+                  </Text>
+                </Box>
+              </FadeIn>
 
               {/* Heading */}
-              <Heading
-                as="h1"
-                fontSize={{ base: "4xl", md: "5xl", lg: "6xl" }}
-                fontWeight="bold"
-                lineHeight="1.1"
-                color="gray.900"
-              >
-                Your Single Source of{" "}
-                <Text as="span" color="brand.600">
-                  Truth for Stripe.
-                </Text>
-              </Heading>
+              <FadeIn delay={0.1}>
+                <Heading
+                  as="h1"
+                  fontSize={{ base: "4xl", md: "5xl", lg: "6xl" }}
+                  fontWeight="bold"
+                  lineHeight="1.1"
+                  color="gray.900"
+                >
+                  Your Single Source of{" "}
+                  <Text as="span" color="brand.600">
+                    Truth for Stripe.
+                  </Text>
+                </Heading>
+              </FadeIn>
 
               {/* Description */}
-              <Text
-                fontSize={{ base: "lg", md: "xl" }}
-                color="gray.600"
-                lineHeight="1.7"
-                maxW="xl"
-              >
-                Aggregate all your Stripe accounts into one powerful dashboard.
-                Finally know exactly how much money you're making across every
-                product, every entity, every account.
-              </Text>
+              <FadeIn delay={0.2}>
+                <Text
+                  fontSize={{ base: "lg", md: "xl" }}
+                  color="gray.600"
+                  lineHeight="1.7"
+                  maxW="xl"
+                >
+                  Aggregate all your Stripe accounts into one powerful
+                  dashboard. Finally know exactly how much money you're making
+                  across every product, every entity, every account.
+                </Text>
+              </FadeIn>
 
               {/* CTA Buttons */}
-              <HStack gap={4} flexWrap="wrap" pt={4}>
-                <Link href="/sign-up">
-                  <Button
-                    size="lg"
-                    px={8}
-                    py={6}
-                    fontSize="md"
-                    fontWeight="semibold"
-                    bg="brand.600"
-                    color="white"
-                    borderRadius="lg"
-                    _hover={{ bg: "brand.700", transform: "translateY(-2px)" }}
-                    transition="all 0.2s"
-                    boxShadow="md"
-                  >
-                    Start Free Trial
-                  </Button>
-                </Link>
-                <Link href="/demo">
-                  <Button
-                    size="lg"
-                    px={8}
-                    py={6}
-                    fontSize="md"
-                    fontWeight="semibold"
-                    variant="outline"
-                    borderColor="gray.300"
-                    color="gray.700"
-                    borderRadius="lg"
-                    _hover={{ bg: "gray.50", borderColor: "gray.400" }}
-                    transition="all 0.2s"
-                  >
-                    <HStack gap={2}>
-                      <PlayIcon />
-                      <Text>Watch Demo</Text>
-                    </HStack>
-                  </Button>
-                </Link>
-              </HStack>
+              <FadeIn delay={0.3}>
+                <HStack gap={4} flexWrap="wrap" pt={4}>
+                  <Link href="/sign-up">
+                    <Button
+                      size="lg"
+                      px={8}
+                      py={6}
+                      fontSize="md"
+                      fontWeight="semibold"
+                      bg="brand.600"
+                      color="white"
+                      borderRadius="lg"
+                      _hover={{
+                        bg: "brand.700",
+                        transform: "translateY(-2px)",
+                      }}
+                      transition="all 0.2s"
+                      boxShadow="md"
+                    >
+                      Start Free Trial
+                    </Button>
+                  </Link>
+                  <Link href="/demo">
+                    <Button
+                      size="lg"
+                      px={8}
+                      py={6}
+                      fontSize="md"
+                      fontWeight="semibold"
+                      variant="outline"
+                      borderColor="gray.300"
+                      color="gray.700"
+                      borderRadius="lg"
+                      _hover={{ bg: "gray.50", borderColor: "gray.400" }}
+                      transition="all 0.2s"
+                    >
+                      <HStack gap={2}>
+                        <PlayIcon />
+                        <Text>Watch Demo</Text>
+                      </HStack>
+                    </Button>
+                  </Link>
+                </HStack>
+              </FadeIn>
 
               {/* Trust indicators */}
-              <HStack gap={6} pt={6}>
-                <HStack gap={2}>
-                  <CheckIcon />
-                  <Text fontSize="sm" color="gray.600">
-                    No credit card required
-                  </Text>
+              <FadeIn delay={0.4}>
+                <HStack gap={6} pt={6}>
+                  <HStack gap={2}>
+                    <CheckIcon />
+                    <Text fontSize="sm" color="gray.600">
+                      No credit card required
+                    </Text>
+                  </HStack>
+                  <HStack gap={2}>
+                    <CheckIcon />
+                    <Text fontSize="sm" color="gray.600">
+                      14-day free trial
+                    </Text>
+                  </HStack>
                 </HStack>
-                <HStack gap={2}>
-                  <CheckIcon />
-                  <Text fontSize="sm" color="gray.600">
-                    14-day free trial
-                  </Text>
-                </HStack>
-              </HStack>
+              </FadeIn>
             </Flex>
           </GridItem>
 
           {/* Right content - Dashboard preview */}
           <GridItem position="relative">
-            <Box position="relative">
-              {/* Floating stats */}
-              <StatBadge
-                value="$847K"
-                label="Total MRR"
-                position={{ top: "-30px", left: "-50px" }}
-                isLarge
-                isHovered={isDashboardHovered}
-                tiltDirection="left"
-              />
-              <StatBadge
-                value="12"
-                label="Connected Accounts"
-                position={{ bottom: "80px", right: "-40px" }}
-                isHovered={isDashboardHovered}
-                tiltDirection="right"
-              />
+            <FadeIn delay={0.2} direction="right">
+              <Box position="relative">
+                {/* Floating stats */}
+                <StatBadge
+                  value="$847K"
+                  label="Total MRR"
+                  position={{ top: "-30px", left: "-50px" }}
+                  isLarge
+                  isHovered={isDashboardHovered}
+                  tiltDirection="left"
+                />
+                <StatBadge
+                  value="12"
+                  label="Connected Accounts"
+                  position={{ bottom: "80px", right: "-40px" }}
+                  isHovered={isDashboardHovered}
+                  tiltDirection="right"
+                />
 
-              {/* Main dashboard mockup */}
-              <TiltCard
-                isHovered={isDashboardHovered}
-                onHoverChange={setIsDashboardHovered}
-              >
-                <Box
-                  bg="white"
-                  borderRadius="2xl"
-                  boxShadow="2xl"
-                  overflow="hidden"
-                  border="1px solid"
-                  borderColor="gray.200"
+                {/* Main dashboard mockup */}
+                <TiltCard
+                  isHovered={isDashboardHovered}
+                  onHoverChange={setIsDashboardHovered}
                 >
-                  {/* Browser chrome */}
-                  <HStack
-                    px={4}
-                    py={3}
-                    bg="gray.50"
-                    borderBottom="1px solid"
+                  <Box
+                    bg="white"
+                    borderRadius="2xl"
+                    boxShadow="2xl"
+                    overflow="hidden"
+                    border="1px solid"
                     borderColor="gray.200"
-                    gap={2}
                   >
-                    <Box w={3} h={3} borderRadius="full" bg="red.400" />
-                    <Box w={3} h={3} borderRadius="full" bg="yellow.400" />
-                    <Box w={3} h={3} borderRadius="full" bg="green.400" />
-                    <Box
-                      flex={1}
-                      mx={4}
+                    {/* Browser chrome */}
+                    <HStack
                       px={4}
-                      py={1}
-                      bg="white"
-                      borderRadius="md"
-                      fontSize="xs"
-                      color="gray.500"
+                      py={3}
+                      bg="gray.50"
+                      borderBottom="1px solid"
+                      borderColor="gray.200"
+                      gap={2}
                     >
-                      app.karsilo.com/dashboard
-                    </Box>
-                  </HStack>
+                      <Box w={3} h={3} borderRadius="full" bg="red.400" />
+                      <Box w={3} h={3} borderRadius="full" bg="yellow.400" />
+                      <Box w={3} h={3} borderRadius="full" bg="green.400" />
+                      <Box
+                        flex={1}
+                        mx={4}
+                        px={4}
+                        py={1}
+                        bg="white"
+                        borderRadius="md"
+                        fontSize="xs"
+                        color="gray.500"
+                      >
+                        app.karsilo.com/dashboard
+                      </Box>
+                    </HStack>
 
-                  {/* Dashboard content */}
-                  <Box p={{ base: 3, sm: 4, md: 6 }}>
-                    {/* Stats row */}
-                    <Grid
-                      templateColumns={{
-                        base: "repeat(2, 1fr)",
-                        sm: "repeat(4, 1fr)",
-                      }}
-                      gap={{ base: 2, sm: 3, md: 4 }}
-                      mb={{ base: 3, md: 6 }}
-                    >
-                      {[
-                        { label: "Revenue", value: "$12,455", change: "+23%" },
-                        { label: "Customers", value: "1,468", change: "+6%" },
-                        {
-                          label: "Subscriptions",
-                          value: "847",
-                          change: "+12%",
-                        },
-                        { label: "Payments", value: "22,209", change: "+8%" },
-                      ].map((stat) => (
-                        <Box
-                          key={stat.label}
-                          p={{ base: 2, sm: 3, md: 4 }}
-                          bg="brand.50"
-                          borderRadius="lg"
-                        >
-                          <Text
-                            fontSize={{ base: "2xs", sm: "xs" }}
-                            color="gray.500"
-                            mb={1}
+                    {/* Dashboard content */}
+                    <Box p={{ base: 3, sm: 4, md: 6 }}>
+                      {/* Stats row */}
+                      <Grid
+                        templateColumns={{
+                          base: "repeat(2, 1fr)",
+                          sm: "repeat(4, 1fr)",
+                        }}
+                        gap={{ base: 2, sm: 3, md: 4 }}
+                        mb={{ base: 3, md: 6 }}
+                      >
+                        {[
+                          {
+                            label: "Revenue",
+                            value: "$12,455",
+                            change: "+23%",
+                          },
+                          { label: "Customers", value: "1,468", change: "+6%" },
+                          {
+                            label: "Subscriptions",
+                            value: "847",
+                            change: "+12%",
+                          },
+                          { label: "Payments", value: "22,209", change: "+8%" },
+                        ].map((stat) => (
+                          <Box
+                            key={stat.label}
+                            p={{ base: 2, sm: 3, md: 4 }}
+                            bg="brand.50"
+                            borderRadius="lg"
                           >
-                            {stat.label}
-                          </Text>
-                          <HStack justify="space-between">
-                            <Text
-                              fontSize={{ base: "sm", sm: "md", md: "lg" }}
-                              fontWeight="bold"
-                              color="gray.900"
-                            >
-                              {stat.value}
-                            </Text>
                             <Text
                               fontSize={{ base: "2xs", sm: "xs" }}
-                              color="green.500"
-                              fontWeight="medium"
+                              color="gray.500"
+                              mb={1}
                             >
-                              {stat.change}
+                              {stat.label}
                             </Text>
-                          </HStack>
-                        </Box>
-                      ))}
-                    </Grid>
+                            <HStack justify="space-between">
+                              <Text
+                                fontSize={{ base: "sm", sm: "md", md: "lg" }}
+                                fontWeight="bold"
+                                color="gray.900"
+                              >
+                                {stat.value}
+                              </Text>
+                              <Text
+                                fontSize={{ base: "2xs", sm: "xs" }}
+                                color="green.500"
+                                fontWeight="medium"
+                              >
+                                {stat.change}
+                              </Text>
+                            </HStack>
+                          </Box>
+                        ))}
+                      </Grid>
 
-                    {/* Chart placeholder */}
-                    <Box
-                      bg="gray.900"
-                      borderRadius="xl"
-                      p={{ base: 3, sm: 4, md: 6 }}
-                      position="relative"
-                      overflow="hidden"
-                    >
-                      <Text
-                        fontSize={{ base: "xs", sm: "sm" }}
-                        color="gray.400"
-                        mb={{ base: 2, md: 4 }}
+                      {/* Chart placeholder */}
+                      <Box
+                        bg="gray.900"
+                        borderRadius="xl"
+                        p={{ base: 3, sm: 4, md: 6 }}
+                        position="relative"
+                        overflow="hidden"
                       >
-                        Revenue Over Time
-                      </Text>
-                      <Box px={2}>
-                        <ChartSVG />
+                        <Text
+                          fontSize={{ base: "xs", sm: "sm" }}
+                          color="gray.400"
+                          mb={{ base: 2, md: 4 }}
+                        >
+                          Revenue Over Time
+                        </Text>
+                        <Box px={2}>
+                          <ChartSVG />
+                        </Box>
                       </Box>
                     </Box>
                   </Box>
-                </Box>
-              </TiltCard>
-            </Box>
+                </TiltCard>
+              </Box>
+            </FadeIn>
           </GridItem>
         </Grid>
       </Container>

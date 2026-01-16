@@ -384,6 +384,19 @@ export function Features() {
       position="relative"
       overflow="hidden"
     >
+      {/* Dot grid overlay */}
+      <Box
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
+        opacity={0.3}
+        backgroundImage="radial-gradient(circle at 2px 2px, #d1d5db 1px, transparent 0)"
+        backgroundSize="32px 32px"
+        pointerEvents="none"
+      />
+
       {/* Scattered solid grey circles - same style as hero */}
       <Box
         position="absolute"

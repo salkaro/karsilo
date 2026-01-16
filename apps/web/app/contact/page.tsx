@@ -309,22 +309,17 @@ export default function ContactPage() {
                   >
                     How can we help?
                   </Text>
-                  <Box
-                    as="textarea"
+                  <textarea
                     placeholder="Tell us about your needs..."
                     rows={4}
-                    width="full"
-                    p={4}
-                    bg="white"
-                    borderRadius="lg"
-                    border="1px solid"
-                    borderColor="gray.200"
-                    fontSize="md"
-                    resize="vertical"
-                    _focus={{
-                      borderColor: "brand.500",
-                      boxShadow: "0 0 0 1px var(--chakra-colors-brand-500)",
-                      outline: "none",
+                    style={{
+                      width: "100%",
+                      padding: "1rem",
+                      backgroundColor: "white",
+                      borderRadius: "0.5rem",
+                      border: "1px solid #e5e7eb",
+                      fontSize: "1rem",
+                      resize: "vertical",
                     }}
                   />
                 </Box>

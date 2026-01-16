@@ -10,7 +10,6 @@ export interface IConnection {
 
     // Entity attachment
     entityId?: string;
-    entityName?: string;
 
     // OAuth tokens (encrypted)
     accessToken?: string;

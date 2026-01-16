@@ -85,7 +85,6 @@ export function useInvoices(params: UseInvoicesParams | string | null): UseInvoi
                             organisationId,
                             connectionId: connection.id,
                         });
-                        console.log("INV", fetched)
 
                         if (!err && fetched && connection.entityId) {
                             hasMoreDict[connection.id] = more;

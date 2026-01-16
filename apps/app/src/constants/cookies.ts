@@ -1,7 +1,7 @@
 export const tokensCookieKey = "tokens";
 export const membersCookieKey = "members";
 export const invitesCookieKey = "invites";
-export const paymentsCookieKey = "payments";
+export const chargesCookieKey = "charges";
 export const entitiesCookieKey = "entities";
 export const invoicesCookieKey = "invoices";
 export const customersCookieKey = "customers";

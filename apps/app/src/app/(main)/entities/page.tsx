@@ -2,6 +2,8 @@ import Page from "@/components/main/entities/Page";
 
 import { Metadata } from "next";
 
+import { Suspense } from "react";
+
 export const metadata: Metadata = {
     title: "Entities | Karsilo",
     description: "Entities",
@@ -22,6 +24,8 @@ export const metadata: Metadata = {
 
 export default function EntitiesPage() {
     return (
-        <Page />
+        <Suspense>
+            <Page />
+        </Suspense>
     )
 }

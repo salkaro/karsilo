@@ -112,29 +112,6 @@ export default function Sidebar() {
 
                     <Separator my={4} />
 
-                    {/* Entities */}
-                    <Link
-                        href="/entities"
-                        display="flex"
-                        alignItems="center"
-                        gap={3}
-                        px={3}
-                        py={2.5}
-                        borderRadius="lg"
-                        bg={pathname === "/entities" ? "purple.50" : "transparent"}
-                        color={pathname === "/entities" ? "purple.600" : "gray.700"}
-                        fontWeight={pathname === "/entities" ? "semibold" : "medium"}
-                        fontSize="sm"
-                        _hover={{
-                            bg: pathname === "/entities" ? "purple.50" : "gray.100",
-                            textDecoration: "none",
-                        }}
-                        transition="all 0.2s"
-                    >
-                        <Building2 size={18} />
-                        <Text>Entities</Text>
-                    </Link>
-
                     {/* Settings */}
                     <Link
                         href="/settings"

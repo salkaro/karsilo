@@ -1,4 +1,4 @@
-import { Box } from "@repo/ui"
+import Page from "@/components/main/employee-management/Page";
 
 import { Metadata } from "next";
 
@@ -22,7 +22,6 @@ export const metadata: Metadata = {
 
 export default function EmployeeManagementPage() {
     return (
-        <Box>
-        </Box>
+        <Page />
     )
 }

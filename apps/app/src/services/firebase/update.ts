@@ -102,7 +102,7 @@ export async function updateOrganisation({ organisation }: { organisation: IOrga
     }
 }
 
-export async function updateOrganisationMember({ member, organisation, remove }: { member: IUser, organisation?: IOrganisation, remove?: boolean }) {
+export async function updateOrganisationMember({ member, organisation, remove }: { member: IUser, organisation?: IOrganisation | null, remove?: boolean }) {
     try {
         const userRef = doc(firestore, usersCol, member.id as string);
 

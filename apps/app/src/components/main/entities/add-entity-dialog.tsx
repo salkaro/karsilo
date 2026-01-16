@@ -26,6 +26,7 @@ import {
     HStack,
     Portal,
 } from "@repo/ui";
+import { Plus } from "lucide-react";
 
 
 interface Props {
@@ -95,13 +96,14 @@ const AddEntityDialog: React.FC<Props> = ({ organisation, refetchEntitiesCallbac
     }
 
     return (
-        <DialogRoot open={open} onOpenChange={(e) => setOpen(e.open)} placement="center" size="md">
+        <DialogRoot open={open} onOpenChange={(e) => setOpen(e.open)} placement="center" size="sm">
             <DialogTrigger asChild>
                 <Button
-                    colorPalette="blue"
-                    size="md"
+                    colorPalette="purple"
+                    size="sm"
                     disabled={!canAddEntity}
                 >
+                    <Plus />
                     Add Entity
                 </Button>
             </DialogTrigger>
@@ -112,18 +114,6 @@ const AddEntityDialog: React.FC<Props> = ({ organisation, refetchEntitiesCallbac
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Create New Entity</DialogTitle>
-                            <HStack gap={2} mt={2}>
-                                <Text fontSize="sm" color="fg.muted">
-                                    {entityLimit === -1 ? 'Unlimited' : `${currentEntityCount}/${entityLimit}`} entities
-                                </Text>
-                                <Badge
-                                    colorPalette={canAddEntity ? "green" : "red"}
-                                    variant="subtle"
-                                    size="sm"
-                                >
-                                    {subscriptionTier}
-                                </Badge>
-                            </HStack>
                         </DialogHeader>
 
                         <form onSubmit={handleSubmit}>
@@ -195,7 +185,7 @@ const AddEntityDialog: React.FC<Props> = ({ organisation, refetchEntitiesCallbac
                                 </Button>
                                 <Button
                                     type="submit"
-                                    colorPalette="blue"
+                                    colorPalette="purple"
                                     loading={loading}
                                     disabled={!canAddEntity || !name.trim()}
                                 >

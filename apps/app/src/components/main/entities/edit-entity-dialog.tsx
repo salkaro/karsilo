@@ -118,12 +118,7 @@ const EditEntityDialog: React.FC<Props> = ({ organisationId, entity, onClose, re
                 <DialogPositioner>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Edit Entity</DialogTitle>
-                            <HStack gap={2} mt={2}>
-                                <Text fontSize="sm" color="fg.muted">
-                                    Update entity information
-                                </Text>
-                            </HStack>
+                            <DialogTitle>Edit</DialogTitle>
                         </DialogHeader>
 
                         <form onSubmit={handleSubmit}>
@@ -183,7 +178,7 @@ const EditEntityDialog: React.FC<Props> = ({ organisationId, entity, onClose, re
                                 </Button>
                                 <Button
                                     type="submit"
-                                    colorPalette="blue"
+                                    colorPalette="purle"
                                     loading={loading}
                                     disabled={!name.trim()}
                                 >

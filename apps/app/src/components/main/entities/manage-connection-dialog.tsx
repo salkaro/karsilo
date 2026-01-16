@@ -15,7 +15,6 @@ import {
     DialogPositioner,
     DialogTrigger,
     Button,
-    Badge,
     HStack,
     VStack,
     Text,
@@ -23,6 +22,7 @@ import {
     Separator,
 } from '@repo/ui';
 import { IConnection } from '@/models/connection';
+import { StripeIcon } from '@/icons/icons';
 
 interface Props {
     entity: IEntity;
@@ -33,7 +33,6 @@ interface Props {
 const ManageConnectionDialog: React.FC<Props> = ({ entity, connection, onConnectionChange }) => {
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-
     const hasConnections = connection;
 
     const handleStripeConnect = async () => {
@@ -69,14 +68,12 @@ const ManageConnectionDialog: React.FC<Props> = ({ entity, connection, onConnect
     };
 
     return (
-        <DialogRoot open={open} onOpenChange={(e) => setOpen(e.open)} placement="center" size="md">
+        <DialogRoot open={open} onOpenChange={(e) => setOpen(e.open)} placement="center" size="lg">
             <DialogTrigger asChild>
                 {hasConnections ? (
                     <HStack gap={2} cursor="pointer">
                         {hasConnections && (
-                            <Badge colorPalette="purple" variant="solid" cursor="pointer">
-                                Stripe
-                            </Badge>
+                            <StripeIcon />
                         )}
                     </HStack>
                 ) : (
@@ -92,14 +89,11 @@ const ManageConnectionDialog: React.FC<Props> = ({ entity, connection, onConnect
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Manage Connections</DialogTitle>
-                            <Text fontSize="sm" color="fg.muted" mt={1}>
-                                Connect {entity.name} to external services
-                            </Text>
                         </DialogHeader>
 
                         <Separator />
 
-                        <DialogBody>
+                        <DialogBody marginTop={4}>
                             <VStack gap={4} align="stretch">
                                 {/* Stripe Connection */}
                                 <HStack
@@ -110,9 +104,7 @@ const ManageConnectionDialog: React.FC<Props> = ({ entity, connection, onConnect
                                     borderColor="gray.200"
                                 >
                                     <HStack gap={3}>
-                                        <Badge colorPalette="purple" variant="solid" size="lg">
-                                            Stripe
-                                        </Badge>
+                                        <StripeIcon />
                                         <VStack align="start" gap={0}>
                                             <Text fontWeight="medium" fontSize="sm">
                                                 Stripe Payments

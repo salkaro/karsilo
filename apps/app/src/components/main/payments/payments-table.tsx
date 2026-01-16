@@ -1,0 +1,167 @@
+"use client";
+
+import { useMemo } from "react";
+import { HStack, Text, Badge, Avatar } from "@repo/ui";
+import { LuTrendingUp, LuFileText } from "react-icons/lu";
+import { ICharge } from "@/models/charge";
+import { IEntity } from "@/models/entity";
+import { DataTable, Column, SummaryCard } from "@/components/ui/table";
+import { formatCurrency, formatDateByTimeAgo } from "@/utils/formatters";
+
+interface PaymentsTableProps {
+    charges: ICharge[];
+    entities: IEntity[] | null;
+    currency?: string;
+    onRefresh?: () => void;
+    loading?: boolean;
+}
+
+export const PaymentsTable = ({ charges, entities, currency = "GBP", onRefresh, loading }: PaymentsTableProps) => {
+    // Get status badge color
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case "successful":
+                return "green";
+            case "pending":
+                return "yellow";
+            case "failed":
+                return "red";
+            case "refunded":
+                return "gray";
+            default:
+                return "gray";
+        }
+    };
+
+    // Get tag badge color
+    const getTagColor = (type: string) => {
+        switch (type) {
+            case "recurring":
+                return "blue";
+            case "one-time":
+                return "purple";
+            default:
+                return "gray";
+        }
+    };
+
+    // Calculate totals
+    const summaryCards: SummaryCard[] = useMemo(() => {
+        const successfulCharges = charges.filter((c) => c.status === "successful");
+        const revenue = successfulCharges.reduce((sum, c) => sum + c.amount, 0);
+        return [
+            {
+                icon: <LuTrendingUp size={20} />,
+                iconColor: "green.500",
+                iconBg: "green.500/10",
+                label: "Revenue",
+                value: formatCurrency(revenue, currency),
+            },
+            {
+                icon: <LuFileText size={20} />,
+                iconColor: "blue.500",
+                iconBg: "blue.500/10",
+                label: "Transactions",
+                value: charges.length,
+            },
+        ];
+    }, [charges, currency]);
+
+    // Define columns
+    const columns: Column<ICharge>[] = useMemo(() => [
+        {
+            key: "entity",
+            header: "Entity",
+            render: (charge: ICharge) => {
+                const entity = entities?.find((e) => e.id === charge.entityId);
+                return (
+                    <HStack gap={2}>
+                        <Avatar.Root size="sm">
+                            <Avatar.Image
+                                src={entity?.images?.logo?.primary || entity?.images?.profile?.square}
+                            />
+                            <Avatar.Fallback>
+                                {entity?.name?.charAt(0) || "?"}
+                            </Avatar.Fallback>
+                        </Avatar.Root>
+                        <Text fontSize="sm" fontWeight="medium">
+                            {entity?.name || "Unknown"}
+                        </Text>
+                    </HStack>
+                );
+            },
+        },
+        {
+            key: "tag",
+            header: "Tag",
+            render: (charge: ICharge) => (
+                <Badge
+                    size="sm"
+                    colorPalette={getTagColor(charge.type)}
+                    variant="subtle"
+                >
+                    {charge.type === "one-time" ? "One-time" : charge.type === "recurring" ? "Recurring" : "Unknown"}
+                </Badge>
+            ),
+        },
+        {
+            key: "date",
+            header: "Date",
+            render: (charge: ICharge) => (
+                <Text fontSize="sm" color="gray.600">
+                    {formatDateByTimeAgo(new Date(charge.createdAt).getTime())}
+                </Text>
+            ),
+        },
+        {
+            key: "status",
+            header: "Status",
+            render: (charge: ICharge) => (
+                <Badge
+                    size="sm"
+                    colorPalette={getStatusColor(charge.status)}
+                    variant="subtle"
+                >
+                    {charge.status.charAt(0).toUpperCase() + charge.status.slice(1)}
+                </Badge>
+            ),
+        },
+        {
+            key: "amount",
+            header: "Amount",
+            align: "right",
+            render: (charge: ICharge) => (
+                <Text fontSize="sm" fontWeight="medium">
+                    {formatCurrency(charge.amount)}
+                </Text>
+            ),
+        },
+    ], [entities]);
+
+    // Search filter
+    const searchFilter = (charge: ICharge, query: string) => {
+        const entity = entities?.find((e) => e.id === charge.entityId);
+        const entityName = entity?.name?.toLowerCase() || "";
+        const q = query.toLowerCase();
+        return (
+            entityName.includes(q) ||
+            charge.amount.toString().includes(q) ||
+            charge.email?.toLowerCase().includes(q) ||
+            charge.description?.toLowerCase().includes(q)
+        );
+    };
+
+    return (
+        <DataTable
+            data={charges}
+            columns={columns}
+            getRowKey={(charge: ICharge) => charge.id}
+            searchPlaceholder="Search by customer, amount, or description..."
+            searchFilter={searchFilter}
+            summaryCards={summaryCards}
+            onRefresh={onRefresh}
+            loading={loading}
+            emptyMessage="No transactions found"
+        />
+    );
+};

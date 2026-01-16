@@ -32,9 +32,34 @@ export async function generateMetadata({
     return { title: "Post Not Found" };
   }
 
+  const postUrl = `https://karsilo.com/blog/${slug}`;
+
   return {
-    title: `${post.title} | Karsilo Blog`,
+    title: post.title,
     description: post.excerpt,
+    authors: [{ name: post.author.name }],
+    openGraph: {
+      title: post.title,
+      description: post.excerpt,
+      url: postUrl,
+      type: "article",
+      publishedTime: post.date,
+      authors: [post.author.name],
+      images: [
+        {
+          url: post.image,
+          width: 1200,
+          height: 630,
+          alt: `${post.title} - Karsilo Blog`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: [post.image],
+    },
   };
 }
 
@@ -157,7 +182,7 @@ export default async function BlogPostPage({
         >
           <Image
             src={post.image}
-            alt={post.title}
+            alt={`Featured image for ${post.title}`}
             fill
             style={{ objectFit: "cover" }}
             priority

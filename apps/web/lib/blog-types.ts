@@ -30,12 +30,27 @@ export const BLOG_CATEGORIES: BlogCategory[] = [
   "Company News",
 ];
 
-// Format date for display - safe for client
+// Month names for consistent formatting
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+// Format date for display - uses manual formatting to avoid hydration mismatch
 export function formatDate(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const month = MONTH_NAMES[date.getUTCMonth()];
+  const day = date.getUTCDate();
+  const year = date.getUTCFullYear();
+  return `${month} ${day}, ${year}`;
 }

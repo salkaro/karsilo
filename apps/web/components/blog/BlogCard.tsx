@@ -33,7 +33,7 @@ export function BlogCard({ post }: BlogCardProps) {
         <Box position="relative" height="200px" overflow="hidden">
           <Image
             src={post.image}
-            alt={post.title}
+            alt={`Cover image for ${post.title}`}
             fill
             style={{ objectFit: "cover" }}
           />
@@ -108,7 +108,7 @@ export function BlogCard({ post }: BlogCardProps) {
               >
                 <Image
                   src={post.author.avatar}
-                  alt={post.author.name}
+                  alt={`Avatar of ${post.author.name}`}
                   fill
                   style={{ objectFit: "cover" }}
                 />

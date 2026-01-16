@@ -356,7 +356,18 @@ function ResourceCard({ resource }: { resource: Resource }) {
 }
 
 // Circle position variants for visual diversity
-const circleVariants = [
+interface CirclePosition {
+  top?: number | string;
+  right?: number | string;
+  bottom?: number | string;
+  left?: number | string;
+  width: string;
+  height: string;
+  opacity: number;
+  transform: string;
+}
+
+const circleVariants: { circles: CirclePosition[] }[] = [
   // Variant 0: Top-right large + bottom-left small
   {
     circles: [

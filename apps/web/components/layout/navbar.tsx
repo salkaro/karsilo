@@ -42,6 +42,7 @@ const defaultLinks: (NavLink | NavDropdown)[] = [
   { label: "Plans", href: "/plans" },
   { label: "Solutions", href: "/solutions" },
   { label: "Resources", href: "/resources" },
+  { label: "Blog", href: "/blog" },
 ];
 
 const isDropdown = (link: NavLink | NavDropdown): link is NavDropdown => {

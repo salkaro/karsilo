@@ -1,4 +1,6 @@
 import { randomBytes } from 'crypto';
+import { apiTokenAccessLevels } from '@/constants/access';
+import { IToken } from '@/models/token';
 const ALPHANUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 export function generateInviteCode(length = 10): string {
@@ -18,4 +20,23 @@ export function randomAlphaNumeric(length: number): string {
         result += ALPHANUM[idx];
     }
     return result;
+}
+
+
+/**
+ * Generates an API key composed of alphanumeric characters only.
+ * Appends the two-digit access level code at the end.
+ */
+export function generateApiKey(
+    accessLevel: keyof typeof apiTokenAccessLevels,
+): IToken {
+    // Generate 64-character random part
+    const randomPart = randomAlphaNumeric(64);
+    const levelCode = apiTokenAccessLevels[accessLevel];
+    const apiKey = `${randomPart}${levelCode}`;
+
+    return {
+        id: apiKey,
+        createdAt: Date.now(),
+    };
 }

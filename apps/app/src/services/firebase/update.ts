@@ -2,18 +2,19 @@
 
 // Local Imports
 import { IUser } from "@/models/user";
+import { IToken } from "@/models/token";
 import { userCache } from "@/constants/cache";
+import { OrgRoleType } from "@/constants/access";
 import { removeCookie } from "@/utils/cookie-handlers";
 import { IOrganisation } from "@/models/organisation";
-import { withTokenRefresh } from "@/utils/token-refresh";
 import { auth, firestore } from "@/lib/firebase/config";
+import { withTokenRefresh } from "@/utils/token-refresh";
 import { createOrganisation } from "./admin-create";
-import { organisationsCol, usersCol } from "@/constants/collections";
 import { incrementOrganisationMembersCount } from "./admin-increment";
+import { organisationsCol, tokensSubCol, usersCol } from "@/constants/collections";
 
 // External Imports
-import { deleteField, doc, FieldValue, updateDoc } from "firebase/firestore";
-
+import { deleteDoc, deleteField, doc, FieldValue, setDoc, updateDoc } from "firebase/firestore";
 
 
 export async function updateOnboarding({ firstname, lastname, organisation }: { firstname: string, lastname: string, organisation?: string }) {
@@ -124,6 +125,34 @@ export async function updateOrganisationMember({ member, organisation, remove }:
         return { success: true };
     } catch (error) {
         console.error(`Error in updateOrganisationMember: ${error}`);
+        return { error: `${error}` }
+    }
+}
+
+
+export async function updateAPIKey({ orgId, token, type, perms, prevId }: { orgId: string, token?: IToken, type: "delete" | "update" | "rotate", perms: OrgRoleType, prevId?: string | null }): Promise<{ success?: boolean, error?: string }> {
+    try {
+        if (!perms || perms === "viewer") return { error: "Invalid permissions" };
+
+        if (!token || !token.id) {
+            return { error: "Missing token or token.id" };
+        }
+
+        const tokenRef = doc(firestore, organisationsCol, orgId, tokensSubCol, token.id);
+
+        if (type === "delete") {
+            await deleteDoc(tokenRef);
+        } else if (type === "update") {
+            await setDoc(tokenRef, token, { merge: true });
+        } else if (type === "rotate" && prevId) {
+            const oldRef = doc(firestore, organisationsCol, orgId, tokensSubCol, prevId);
+            await deleteDoc(oldRef);
+            await setDoc(tokenRef, token, { merge: true });
+        }
+
+        return { success: true }
+
+    } catch (error) {
         return { error: `${error}` }
     }
 }

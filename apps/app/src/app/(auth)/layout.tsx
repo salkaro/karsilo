@@ -1,16 +1,16 @@
 // Local Imports
+import { Providers } from "../providers";
+import ChartsAndMetrics from "@/components/ui/demo-charts-and-metrics";
 import { shortenedTitle, title } from "@/constants/site";
 import { Flex, Text, Avatar, Grid } from "@repo/ui";
-import { Providers } from "../providers";
 
 // External Imports
 import { Suspense } from "react";
 import { Metadata } from "next";
-import ChartsAndMetrics from "@/components/ui/demo-charts-and-metrics";
 
 export const metadata: Metadata = {
-    title: "Karsilo",
-    description: "Karsilo",
+    title: "Onboarding | Karsilo",
+    description: "Onboarding | Karsil",
     robots: {
         index: false,
         follow: false,
@@ -48,7 +48,7 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
                     </Flex>
 
                     <Flex direction="column" flex={1} justify="center" maxW="420px" mx="auto" w="full">
-                        <Suspense fallback={null}>
+                        <Suspense fallback={<div>Loading...</div>}>
                             {children}
                         </Suspense>
                     </Flex>

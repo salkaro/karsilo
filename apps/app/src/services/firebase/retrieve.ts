@@ -4,7 +4,7 @@ import { createUser } from "./admin-create";
 import { IOrganisation } from "@/models/organisation";
 import { auth, firestore } from "@/lib/firebase/config";
 import { getCookie, setCookie } from "@/utils/cookie-handlers";
-import { organisationsCol, usersCol } from "@/constants/collections";
+import { organisationsCol, tokensSubCol, usersCol } from "@/constants/collections";
 import { CACHE_EXPIRY_DAYS, idTokenCache, userCache } from "@/constants/cache";
 
 // External Imports
@@ -126,6 +126,24 @@ export async function retrieveOrganisation({ orgId }: { orgId: string }): Promis
         }
     } catch (error) {
         console.error('Error retrieving organisation from Firestore:', error);
+        throw error;
+    }
+}
+
+export async function retrieveTokens({ orgId }: { orgId: string }): Promise<IToken[]> {
+    try {
+        // Step 1: Reference to the tokens subcollection
+        const tokensRef = collection(firestore, organisationsCol, orgId, tokensSubCol);
+
+        // Step 2: Fetch all documents
+        const snapshot = await getDocs(tokensRef);
+
+        // Step 3: Aggregate token data
+        const tokens: IToken[] = snapshot.docs.map(doc => doc.data() as IToken);
+
+        return tokens;
+    } catch (error) {
+        console.error('Error retrieving tokens from Firestore:', error);
         throw error;
     }
 }

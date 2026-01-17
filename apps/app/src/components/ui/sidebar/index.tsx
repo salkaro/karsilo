@@ -6,6 +6,7 @@ import { Building2, Settings } from "lucide-react"
 import { sidebarItems } from "@/constants/platform"
 import { useSession } from "next-auth/react"
 import { shortenedTitle, title } from "@/constants/site"
+import { SidebarUser } from "./sidebar-user"
 
 export default function Sidebar() {
     const pathname = usePathname()
@@ -137,29 +138,7 @@ export default function Sidebar() {
                 </VStack>
 
                 {/* User Profile Footer */}
-                <Box
-                    as="button"
-                    w="full"
-                    p={4}
-                    mb={2}
-                    transition="all 0.2s"
-                    cursor="pointer"
-                >
-                    <HStack gap={3}>
-                        <Avatar.Root size="md">
-                            <Avatar.Image src={session?.user?.brand?.imageUrl || undefined} />
-                            <Avatar.Fallback name={session?.user?.firstname || "User"} />
-                        </Avatar.Root>
-                        <Box textAlign="left" flex={1} overflow="hidden">
-                            <Text fontSize="sm" fontWeight="semibold" truncate>
-                                {session?.user?.firstname || "Guest"}
-                            </Text>
-                            <Text fontSize="xs" color="muted.foreground" truncate>
-                                {session?.user?.email || "guest@example.com"}
-                            </Text>
-                        </Box>
-                    </HStack>
-                </Box>
+                <SidebarUser />
             </VStack>
         </Box>
     )

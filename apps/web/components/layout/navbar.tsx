@@ -17,6 +17,7 @@ import {
   Text,
 } from "@repo/ui/index";
 import Image from "next/image";
+import { events } from "../lib/analytics";
 
 interface NavLink {
   label: string;
@@ -164,14 +165,28 @@ export function Navbar({
           <HStack gap={2} display={{ base: "none", md: "flex" }} zIndex={2}>
             {ctaButtons.secondary && (
               <Link href={ctaButtons.secondary.href} textDecoration="none">
-                <Button variant="outline" size="md" fontWeight="normal">
+                <Button
+                  variant="outline"
+                  size="md"
+                  fontWeight="normal"
+                  onClick={() =>
+                    events.ctaClick("login", "navbar", ctaButtons.secondary?.href)
+                  }
+                >
                   {ctaButtons.secondary.label}
                 </Button>
               </Link>
             )}
             {ctaButtons.primary && (
               <Link href={ctaButtons.primary.href} textDecoration="none">
-                <Button size="md">{ctaButtons.primary.label}</Button>
+                <Button
+                  size="md"
+                  onClick={() =>
+                    events.ctaClick("signup", "navbar", ctaButtons.primary?.href)
+                  }
+                >
+                  {ctaButtons.primary.label}
+                </Button>
               </Link>
             )}
           </HStack>
@@ -247,7 +262,14 @@ export function Navbar({
               <Stack pt={4} gap={2}>
                 {ctaButtons.secondary && (
                   <Link href={ctaButtons.secondary.href} textDecoration="none">
-                    <Button variant="outline" size="sm" width="full">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      width="full"
+                      onClick={() =>
+                        events.ctaClick("login", "navbar_mobile", ctaButtons.secondary?.href)
+                      }
+                    >
                       {ctaButtons.secondary.label}
                     </Button>
                   </Link>
@@ -261,6 +283,9 @@ export function Navbar({
                       bg="brand.600"
                       color="white"
                       _hover={{ bg: "brand.700" }}
+                      onClick={() =>
+                        events.ctaClick("signup", "navbar_mobile", ctaButtons.primary?.href)
+                      }
                     >
                       {ctaButtons.primary.label}
                     </Button>

@@ -132,7 +132,7 @@ export const PaymentsTable = ({ charges, entities, currency = "GBP", onRefresh, 
             align: "right",
             render: (charge: ICharge) => (
                 <Text fontSize="sm" fontWeight="medium">
-                    {formatCurrency(charge.amount)}
+                    {formatCurrency(charge.amount, charge.currency)}
                 </Text>
             ),
         },

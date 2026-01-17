@@ -10,6 +10,7 @@ import {
   Flex,
 } from "@repo/ui/index";
 import Link from "next/link";
+import { events } from "../lib/analytics";
 
 export function CTASection() {
   return (
@@ -83,6 +84,9 @@ export function CTASection() {
                 }}
                 transition="all 0.2s"
                 boxShadow="lg"
+                onClick={() =>
+                  events.ctaClick("start_free_trial", "cta_section", "/sign-up")
+                }
               >
                 Start Your Free Trial
               </Button>
@@ -103,6 +107,9 @@ export function CTASection() {
                   bg: "whiteAlpha.200",
                 }}
                 transition="all 0.2s"
+                onClick={() =>
+                  events.ctaClick("talk_to_sales", "cta_section", "/contact")
+                }
               >
                 Talk to Sales
               </Button>

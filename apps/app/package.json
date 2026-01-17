@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@chakra-ui/charts": "^3.31.0",
+    "@emotion/cache": "^11.14.0",
+    "@emotion/react": "^11.14.0",
     "@repo/ui": "workspace:*",
     "clsx": "^2.1.1",
     "firebase": "^12.7.0",

@@ -2,6 +2,7 @@
 
 import { createSystem, ChakraProvider, defaultConfig, defineConfig } from "@repo/ui/index";
 import { SessionProvider } from "next-auth/react";
+import { EmotionCacheProvider } from "./emotion";
 
 
 const config = defineConfig({
@@ -125,10 +126,10 @@ const system = createSystem(defaultConfig, config)
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
-        <SessionProvider>
-            <ChakraProvider value={system}>
-                {children}
-            </ChakraProvider>
-        </SessionProvider>
+            <SessionProvider>
+                <ChakraProvider value={system}>
+                    {children}
+                </ChakraProvider>
+            </SessionProvider>
     );
 }

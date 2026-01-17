@@ -24,7 +24,7 @@ import { joinOrganisationAdmin } from "@/services/firebase/admin-update"
 
 
 const OnboardingForm = () => {
-    const { data: session, status } = useSession();
+    const { data: session, status, update: updateSession } = useSession();
     const toastShownRef = useRef(false);
     const searchParams = useSearchParams();
     const inviteIdFromUrl = searchParams.get('inviteId');
@@ -45,8 +45,36 @@ const OnboardingForm = () => {
     // Join
     const [joinCode, setJoinCode] = useState(inviteIdFromUrl || "")
 
+    useEffect(() => {
+        let isMounted = true;
+
+        const run = async () => {
+            setLoading(true);
+
+            // wait 1 second
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
+            // refetch session
+            await updateSession();
+
+            if (isMounted) {
+                setLoading(false);
+            }
+        };
+
+        if (status !== "authenticated") {
+            run();
+        } else {
+            setLoading(false);
+        }
+
+        return () => {
+            isMounted = false;
+        };
+    }, [updateSession, status]);
+
     const handleNextStage = async (e: React.FormEvent<HTMLDivElement>) => {
-        e.preventDefault()
+        e.preventDefault();
         if (stage === 0 && (!firstname || !lastname)) {
             toast.error("Please enter your first and last name.");
             return;
@@ -73,7 +101,13 @@ const OnboardingForm = () => {
                     })
                     toast.success("Organisation created and onboarding complete!")
                 } else if (orgAction === "join") {
-                    const { error } = await joinOrganisationAdmin({ code: joinCode.trim(), uid: session?.user.id as string, firstname, lastname })
+                    if (!session?.user?.id) {
+                        toast.error("Session not ready yet. Please wait a moment and try again.")
+                        setLoading(false)
+                        return
+                    }
+
+                    const { error } = await joinOrganisationAdmin({ code: joinCode.trim(), uid: session.user.id, firstname, lastname })
                     if (error) throw error;
                     toast.success("Joined organisation successfully!")
                 }
@@ -86,6 +120,7 @@ const OnboardingForm = () => {
                 setLoading(false)
             }
         } else {
+            await updateSession();
             setStage(stage + 1);
         }
     };
@@ -159,11 +194,12 @@ const OnboardingForm = () => {
                         <Button
                             width="full"
                             type="submit"
-                            disabled={!firstname || !lastname}
+                            disabled={!firstname || !lastname || loading || status !== "authenticated"}
                             colorScheme="blue"
                             mt={4}
                         >
-                            Continue
+                            {loading && <Spinner size="sm" mr={2} />}
+                            {!loading && "Continue"}
                         </Button>
                     </VStack>
                 </Box>
@@ -224,7 +260,7 @@ const OnboardingForm = () => {
                             <Button
                                 width="32"
                                 type="submit"
-                                disabled={loading}
+                                disabled={loading || status !== "authenticated" || !session?.user?.id}
                                 colorScheme="blue"
                             >
                                 {loading && <Spinner size="sm" mr={2} />}

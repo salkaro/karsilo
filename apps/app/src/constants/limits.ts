@@ -1,6 +1,6 @@
 export const memberLimits = {
     "free": 1,
-    "starter": 5,
+    "growth": 5,
     "essential": 15,
     "pro": 50,
 }
@@ -8,14 +8,14 @@ export const memberLimits = {
 
 export const entityLimits = {
     "free": 1,
-    "starter": 2,
+    "growth": 2,
     "essential": 5,
     "pro": 20,
 }
 
 export const domainLimits = {
     "free": 0,
-    "starter": 1,
+    "growth": 1,
     "essential": 3,
     "pro": 10,
 }

@@ -460,7 +460,6 @@ function HelpCard({
           position="absolute"
           top={circle.top}
           right={circle.right}
-          bottom={circle.bottom}
           left={circle.left}
           width={circle.width}
           height={circle.height}

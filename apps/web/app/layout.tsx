@@ -19,12 +19,67 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://karsilo.com"),
+  title: {
+    default: "Karsilo | #1 Multi-Stripe Account Monitor",
+    template: "%s | Karsilo",
+  },
+  description:
+    "Aggregate all your Stripe accounts into one powerful dashboard. Track MRR, revenue, and customers across every product, entity, and account in real-time.",
+  keywords: [
+    "Stripe dashboard",
+    "multi-Stripe management",
+    "revenue analytics",
+    "MRR tracking",
+    "subscription analytics",
+    "Stripe aggregator",
+    "payment monitoring",
+    "SaaS metrics",
+    "recurring revenue",
+    "Stripe accounts",
+  ],
+  authors: [{ name: "Karsilo" }],
+  creator: "Karsilo",
+  publisher: "Karsilo",
+  icons: {
+    icon: "/KarsiloLogo.png",
+    apple: "/KarsiloLogo.png",
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    siteName: "Karsilo",
     title: "Karsilo | #1 Multi-Stripe Account Monitor",
-    description: "",
-    icons: {
-        icon: "/KarsiloLogo.png",
-        apple: "/KarsiloLogo.png",
+    description:
+      "Aggregate all your Stripe accounts into one powerful dashboard. Track MRR, revenue, and customers across every product, entity, and account in real-time.",
+    images: [
+      {
+        url: "/og/og-default.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Karsilo - Multi-Stripe Account Dashboard",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Karsilo | #1 Multi-Stripe Account Monitor",
+    description:
+      "Aggregate all your Stripe accounts into one powerful dashboard. Track MRR, revenue, and customers in real-time.",
+    images: ["/og/og-default.jpg"],
+    creator: "@karsilo",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
+  },
 };
 
 export default function RootLayout({

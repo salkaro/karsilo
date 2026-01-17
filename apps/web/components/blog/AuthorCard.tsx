@@ -3,6 +3,7 @@
 import { HStack, Box, Text } from "@repo/ui/index";
 import Image from "next/image";
 import type { BlogAuthor } from "../../lib/blog-types";
+import { formatDate } from "../../lib/blog-types";
 
 interface AuthorCardProps {
   author: BlogAuthor;
@@ -11,11 +12,7 @@ interface AuthorCardProps {
 }
 
 export function AuthorCard({ author, date, readingTime }: AuthorCardProps) {
-  const formattedDate = new Date(date).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const formattedDate = formatDate(date);
 
   return (
     <HStack gap={3}>
@@ -31,7 +28,7 @@ export function AuthorCard({ author, date, readingTime }: AuthorCardProps) {
       >
         <Image
           src={author.avatar}
-          alt={author.name}
+          alt={`Photo of ${author.name}`}
           fill
           style={{ objectFit: "cover" }}
         />

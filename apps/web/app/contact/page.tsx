@@ -311,8 +311,6 @@ export default function ContactPage() {
                   </Text>
                   <Box
                     as="textarea"
-                    placeholder="Tell us about your needs..."
-                    rows={4}
                     width="full"
                     p={4}
                     bg="white"

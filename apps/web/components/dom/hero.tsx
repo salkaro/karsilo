@@ -1,5 +1,8 @@
+"use client";
+
 import { Box, Container, Flex, Heading, Stack, Text, Button, HStack } from '@repo/ui/index';
 import Link from 'next/link';
+import { events } from '../lib/analytics';
 
 interface HeroProps {
     badge?: {
@@ -100,34 +103,39 @@ export function Hero({
 
                     {/* CTA Buttons */}
                     <HStack gap={4} flexWrap="wrap" justify="center">
-                        <Button
-                            size="lg"
-                            px={8}
-                            py={6}
-                            fontSize="lg"
-                            bg="brand.600"
-                            color="white"
-                        >
-                            <Link href={primaryButton.href}>
-                                {primaryButton.label}
-                            </Link>
-                        </Button>
-                        {secondaryButton && (
+                        <Link href={primaryButton.href}>
                             <Button
                                 size="lg"
                                 px={8}
                                 py={6}
                                 fontSize="lg"
-                                variant="outline"
-                                borderColor="gray.900"
-                                color="gray.900"
-                                _hover={{ bg: 'gray.50' }}
+                                bg="brand.600"
+                                color="white"
+                                onClick={() =>
+                                    events.ctaClick("primary_cta", "hero", primaryButton.href)
+                                }
                             >
-
-                                <Link href={primaryButton.href}>
-                                    {secondaryButton.label}
-                                </Link>
+                                {primaryButton.label}
                             </Button>
+                        </Link>
+                        {secondaryButton && (
+                            <Link href={secondaryButton.href}>
+                                <Button
+                                    size="lg"
+                                    px={8}
+                                    py={6}
+                                    fontSize="lg"
+                                    variant="outline"
+                                    borderColor="gray.900"
+                                    color="gray.900"
+                                    _hover={{ bg: 'gray.50' }}
+                                    onClick={() =>
+                                        events.ctaClick("secondary_cta", "hero", secondaryButton.href)
+                                    }
+                                >
+                                    {secondaryButton.label}
+                                </Button>
+                            </Link>
                         )}
                     </HStack>
                 </Flex>

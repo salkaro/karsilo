@@ -2,8 +2,9 @@
 
 import { Box } from "@repo/ui"
 import FirebaseProvider from "../firebase-provider"
-import Sidebar from "./sidebar"
+
 import LayoutHeader from "./layout-header"
+import Sidebar from "../ui/sidebar"
 
 export default function Layout({ className, children }: { className?: string, children: React.ReactNode }) {
     return (

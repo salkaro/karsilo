@@ -1,6 +1,4 @@
-
-import { LayoutGridIcon } from "@/icons/icons";
-import { LucideIcon, UserRound, Wallet, Store, Table2, FilePlusCorner, UsersRound, ArrowLeftRight, UserLock, FileChartPie, Building2 } from "lucide-react";
+import { LucideIcon, UserRound, Wallet, Store, Table2, FilePlusCorner, UsersRound, ArrowLeftRight, UserLock, FileChartPie, Building2, Key } from "lucide-react";
 
 
 export interface IItem {
@@ -93,5 +91,12 @@ export const settingsSubItems: IItem[] = [
         type: "page",
         url: "/settings#billing",
         icon: Wallet,
+    },
+    {
+        title: "Authentication",
+        description: "View billing & manage memberships",
+        type: "page",
+        url: "/settings#authentication",
+        icon: Key,
     },
 ];

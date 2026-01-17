@@ -48,15 +48,6 @@ export async function retrieveOrganisationMembers({ idToken, orgId }: { idToken:
         if (!callerSnap.exists) {
             return { error: "Caller not found in users collection." };
         }
-        const caller = callerSnap.data() as IUser;
-
-        // Step 3: Check permission: must belong to orgId with level three perms
-        const hasAccess = levelTwoAccess.includes(caller.organisation?.role as string);
-        if (
-            caller.organisation?.id !== orgId || !hasAccess
-        ) {
-            return { error: "Insufficient permissions." };
-        }
 
         // Step 4: Query all users in that organisation
         const querySnap = await firestoreAdmin

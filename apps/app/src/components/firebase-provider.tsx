@@ -20,7 +20,7 @@ interface Props {
 
 const FirebaseProvider: React.FC<Props> = ({ children }) => {
     const router = useRouter();
-    const { status } = useSession();
+    const { status, update: updateSession } = useSession();
 
     // Derive showDialog directly from status instead of using effect
     const showDialog = status === "unauthenticated";
@@ -31,6 +31,7 @@ const FirebaseProvider: React.FC<Props> = ({ children }) => {
                 const path = window.location.pathname;
 
                 if (path == "/preparing") {
+                    await updateSession();
                     router.push("/dashboard")
                 }
 
@@ -61,7 +62,7 @@ const FirebaseProvider: React.FC<Props> = ({ children }) => {
             unsubscribe();
             clearInterval(tokenRefreshInterval);
         }
-    }, [router])
+    }, [router, updateSession])
 
     const handleReLogin = async () => {
         await signOut("/login");

@@ -6,6 +6,7 @@ export const organisationsCol = "organisations";
 export const connectionsSubCol = "connections";
 export const inviteCodesSubCol = "invite-codes";
 export const entitiesSubCol = "entities";
+export const tokensSubCol = "tokens";
 
 
 // Subcollections (under organisations/{organisationId}/)
@@ -17,3 +18,6 @@ export const getInviteCodesPath = (organisationId: string) =>
 
 export const getEntitiesPath = (organisationId: string) =>
     `${organisationsCol}/${organisationId}/${entitiesSubCol}`;
+
+export const getTokensPath = (organisationId: string) =>
+    `${organisationsCol}/${organisationId}/${tokensSubCol}`;

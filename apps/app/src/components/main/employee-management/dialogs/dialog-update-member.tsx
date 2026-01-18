@@ -12,10 +12,9 @@ import {
     Text,
     VStack
 } from "@repo/ui"
-import { IUser } from '@/models/user'
-import { levelOneAccess, levelsToIndex, OrgRoleType } from '@/constants/access'
+import { IUser, IOrganisation } from '@repo/models'
+import { levelOneAccess, levelsToIndex, OrgRoleType } from '@repo/constants'
 import { updateOrganisationMember } from '@/services/firebase/update'
-import { IOrganisation } from '@/models/organisation'
 import CustomDialog from '@/components/ui/dialog'
 
 interface Props {

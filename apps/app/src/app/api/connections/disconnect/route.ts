@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { deleteConnection } from "@/services/connections/delete";
-import { ConnectionType } from "@/models/connection";
+import { ConnectionType } from "@repo/models";
 
 export async function POST(request: NextRequest) {
     try {

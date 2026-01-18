@@ -1,6 +1,6 @@
 "use client"
 
-import { root } from "@/constants/site"
+import { root } from "@repo/constants"
 import { Box, Button, Grid, Heading, Text, VStack } from "@repo/ui"
 import { useRouter } from "next/navigation"
 import DemoChartsAndMetrics from "./demo-charts-and-metrics"

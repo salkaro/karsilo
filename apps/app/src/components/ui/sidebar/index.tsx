@@ -1,16 +1,14 @@
 "use client"
 
-import { Box, VStack, Text, Link, Separator, Avatar, HStack, Flex } from "@repo/ui"
+import { Box, VStack, Text, Link, Separator, Avatar, Flex } from "@repo/ui"
 import { usePathname } from "next/navigation"
-import { Building2, Settings } from "lucide-react"
+import { Settings } from "lucide-react"
 import { sidebarItems } from "@/constants/platform"
-import { useSession } from "next-auth/react"
-import { shortenedTitle, title } from "@/constants/site"
+import { shortenedTitle, title } from "@repo/constants"
 import { SidebarUser } from "./sidebar-user"
 
 export default function Sidebar() {
     const pathname = usePathname()
-    const { data: session } = useSession()
 
     return (
         <Box

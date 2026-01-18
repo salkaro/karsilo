@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { toast } from "sonner"
 
-import { apiTokenAccessLevelsName } from "@/constants/access"
+import { apiTokenAccessLevelsName } from "@repo/constants"
 import {
     Grid,
     Input,

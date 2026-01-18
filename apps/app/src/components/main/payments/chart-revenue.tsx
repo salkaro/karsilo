@@ -1,11 +1,8 @@
 "use client";
 
 import { Box, Skeleton, HStack, VStack, Flex, Text, Icon } from "@repo/ui";
-import { ICharge } from "@/models/charge";
-import { IConnection } from "@/models/connection";
+import { ICharge, IConnection, IOrganisation, IEntity } from "@repo/models";
 import { useMemo } from "react";
-import { IOrganisation } from "@/models/organisation";
-import { IEntity } from "@/models/entity";
 import { Balloon } from "lucide-react";
 import { SVGChart } from "@/components/ui/chart";
 import { SVGChartDataPoint, SVGChartSeries } from "@/components/ui/chart/models";
@@ -35,7 +32,7 @@ const CONNECTION_COLORS = [
 
 const ChartSkeleton = () => (
     <Box
-        bg="white"
+        bg="#111827"
         p={6}
         borderRadius="xl"
         border="1px solid"
@@ -46,32 +43,32 @@ const ChartSkeleton = () => (
         <VStack height="100%" gap={4}>
             <HStack width="100%" height="100%" gap={4} align="stretch">
                 <VStack justify="space-between" py={4}>
-                    <Skeleton height="12px" width="40px" />
-                    <Skeleton height="12px" width="35px" />
-                    <Skeleton height="12px" width="40px" />
-                    <Skeleton height="12px" width="30px" />
-                    <Skeleton height="12px" width="35px" />
+                    <Skeleton height="12px" width="40px" bg="gray.800" color="gray.700" />
+                    <Skeleton height="12px" width="35px" bg="gray.800" color="gray.700" />
+                    <Skeleton height="12px" width="40px" bg="gray.800" color="gray.700" />
+                    <Skeleton height="12px" width="30px" bg="gray.800" color="gray.700" />
+                    <Skeleton height="12px" width="35px" bg="gray.800" color="gray.700" />
                 </VStack>
                 <Box flex={1} position="relative">
-                    <Skeleton height="100%" width="100%" />
+                    <Skeleton height="100%" width="100%" bg="gray.800" color="gray.700" />
                 </Box>
             </HStack>
             <HStack width="100%" justify="space-around" pl="50px">
-                <Skeleton height="12px" width="40px" />
-                <Skeleton height="12px" width="40px" />
-                <Skeleton height="12px" width="40px" />
-                <Skeleton height="12px" width="40px" />
-                <Skeleton height="12px" width="40px" />
-                <Skeleton height="12px" width="40px" />
+                <Skeleton height="12px" width="40px" bg="gray.800" color="gray.700" />
+                <Skeleton height="12px" width="40px" bg="gray.800" color="gray.700" />
+                <Skeleton height="12px" width="40px" bg="gray.800" color="gray.700" />
+                <Skeleton height="12px" width="40px" bg="gray.800" color="gray.700" />
+                <Skeleton height="12px" width="40px" bg="gray.800" color="gray.700" />
+                <Skeleton height="12px" width="40px" bg="gray.800" color="gray.700" />
             </HStack>
             <HStack justify="center" gap={6}>
                 <HStack gap={2}>
-                    <Skeleton height="12px" width="12px" borderRadius="full" />
-                    <Skeleton height="12px" width="60px" />
+                    <Skeleton height="12px" width="12px" borderRadius="full" bg="gray.800" color="gray.700" />
+                    <Skeleton height="12px" width="60px" bg="gray.800" color="gray.700" />
                 </HStack>
                 <HStack gap={2}>
-                    <Skeleton height="12px" width="12px" borderRadius="full" />
-                    <Skeleton height="12px" width="50px" />
+                    <Skeleton height="12px" width="12px" borderRadius="full" bg="gray.800" color="gray.700" />
+                    <Skeleton height="12px" width="50px" bg="gray.800" color="gray.700" />
                 </HStack>
             </HStack>
         </VStack>
@@ -139,8 +136,14 @@ export const ChartRevenue = ({
             });
         });
 
-        // Sort periods and create chart data
+        // Sort periods and create chart data with cumulative revenue
         const sortedPeriods = Object.keys(revenueByPeriod).sort();
+
+        // Track cumulative totals for each connection
+        const cumulativeTotals: Record<string, number> = {};
+        connectionIds.forEach((connectionId) => {
+            cumulativeTotals[connectionId] = 0;
+        });
 
         const data: SVGChartDataPoint[] = sortedPeriods.map((periodKey) => {
             let periodLabel: string;
@@ -160,9 +163,11 @@ export const ChartRevenue = ({
                 });
             }
 
-            // Create values array in the same order as series
+            // Create values array with cumulative totals
             const values = connectionIds.map((connectionId) => {
-                const value = revenueByPeriod[periodKey]?.[connectionId] || 0;
+                // Add this period's revenue to the cumulative total
+                cumulativeTotals[connectionId] += revenueByPeriod[periodKey]?.[connectionId] || 0;
+                const value = cumulativeTotals[connectionId];
                 const displayValue = new Intl.NumberFormat("en-US", {
                     style: "currency",
                     currency,
@@ -255,6 +260,8 @@ export const ChartRevenue = ({
                 gridLines={4}
                 animated={true}
                 currency={currency}
+                showXAxis={true}
+                showYAxis={true}
             />
         </Box>
     );

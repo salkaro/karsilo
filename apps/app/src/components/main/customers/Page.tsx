@@ -3,7 +3,7 @@
 import { Column, DataTable, SummaryCard } from '@/components/ui/table';
 import { useCustomers } from '@/hooks/useCustomers'
 import { useOrganisation } from '@/hooks/useOrganisation'
-import { ICustomer } from '@/models/customer';
+import { ICustomer } from '@repo/models';
 import { formatDateByTimeAgo } from '@/utils/formatters';
 import { Avatar, Badge, Box, HStack, Text } from '@repo/ui';
 import { Users } from 'lucide-react';

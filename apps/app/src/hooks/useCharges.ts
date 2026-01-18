@@ -10,7 +10,7 @@ import { extractOneTimeOrRecurring } from "@/services/stripe/utils";
 import { retrieveStripePayments } from "@/services/stripe/retrieve";
 import { retrieveAllConnections } from "@/services/connections/retrieve";
 import { chargesCookieKey } from "@/constants/cookies";
-import { ICharge } from "@/models/charge";
+import { ICharge } from "@repo/models";
 
 interface UseChargesReturn {
     chargesByConnection: Record<string, ICharge[]> | null;
@@ -88,6 +88,8 @@ export function useCharges(params: UseChargesParams | string | null): UseCharges
                             organisationId,
                             connectionId: connection.id,
                         });
+
+                        console.log(fetched)
 
                         if (!err && fetched && connection.entityId) {
                             hasMoreDict[connection.id] = more;

@@ -1,8 +1,8 @@
 // Local Imports
 import { firestore } from "@/lib/firebase/config";
-import { IMemberInvite } from "@/models/invite";
-import { getInviteCodesPath } from "@/constants/collections";
+import { IMemberInvite } from "@repo/models";
 import { invitesCookieKey } from "@/constants/cookies";
+import { getInviteCodesPath } from "@repo/constants";
 import { getCookie, setCookie } from "@/utils/cookie-handlers";
 
 // External Imports

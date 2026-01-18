@@ -8,7 +8,7 @@ import { PaymentsTable } from "./payments-table";
 import { formatDateRange } from "@/utils/formatters";
 import { useMemo, useState } from "react";
 import { FilterLongType } from "@/constants/filters";
-import { ICharge } from "@/models/charge";
+import { ICharge } from "@repo/models";
 
 // Chakra UI v3 components from your monorepo package
 import {

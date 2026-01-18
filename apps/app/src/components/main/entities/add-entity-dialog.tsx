@@ -1,7 +1,7 @@
 "use client";
 
-import { entityLimits } from "@/constants/limits";
-import { IOrganisation } from "@/models/organisation";
+import { entityLimits } from "@repo/constants";
+import { IOrganisation } from "@repo/models";
 import { createEntity } from "@/services/firebase/entities/create";
 import { useState } from "react";
 import { toast } from "sonner";

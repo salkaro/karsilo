@@ -1,4 +1,4 @@
-import { IEntity } from '@/models/entity'
+import { IEntity, IConnection } from '@repo/models'
 import EditEntityDialog from './edit-entity-dialog';
 import React from 'react'
 import {
@@ -16,7 +16,6 @@ import {
     Card,
 } from '@repo/ui'
 import ManageConnectionDialog from './manage-connection-dialog';
-import { IConnection } from '@/models/connection';
 
 
 interface Props {

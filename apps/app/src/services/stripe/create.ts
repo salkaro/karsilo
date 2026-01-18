@@ -1,6 +1,6 @@
 "use server";
 
-import { root, isProduction } from '@/constants/site';
+import { root, isProduction } from '@repo/constants';
 import Stripe from 'stripe';
 
 
@@ -82,5 +82,79 @@ export async function createCustomerSession({ customerId }: { customerId: string
     } catch (error) {
         console.error('Error creating customer session:', error);
         throw error;
+    }
+}
+
+import { retrieveConnection } from "@/services/connections/retrieve";
+
+export type ReportType =
+    | "balance_change_from_activity.itemized.1"
+    | "balance_change_from_activity.itemized.2"
+    | "balance_change_from_activity.itemized.3"
+    | "balance_change_from_activity.summary.1"
+    | "balance.summary.1"
+    | "payout_reconciliation.itemized.1"
+    | "payout_reconciliation.itemized.2"
+    | "payout_reconciliation.itemized.3"
+    | "payout_reconciliation.itemized.4"
+    | "payout_reconciliation.itemized.5"
+    | "payout_reconciliation.summary.1"
+    | "payouts.itemized.1"
+    | "payouts.itemized.2"
+    | "payouts.itemized.3"
+    | "payouts.summary.1"
+    | "ending_balance_reconciliation.itemized.4"
+    | "connected_account_balance_change_from_activity.itemized.2"
+    | "connected_account_balance_change_from_activity.summary.1"
+    | "connected_account_payout_reconciliation.itemized.5"
+    | "connected_account_payout_reconciliation.summary.1"
+    | "connected_account_ending_balance_reconciliation.itemized.4";
+
+export async function createStripeReport({
+    organisationId,
+    connectionId,
+    reportType,
+    intervalStart,
+    intervalEnd,
+}: {
+    organisationId: string;
+    connectionId: string;
+    reportType: ReportType;
+    intervalStart: number; // Unix timestamp
+    intervalEnd: number;   // Unix timestamp
+}): Promise<{ report: Stripe.Reporting.ReportRun | null; error: string | null }> {
+    try {
+        const connection = await retrieveConnection({
+            organisationId: organisationId,
+            connectionId: connectionId,
+        });
+
+        if (!connection || !connection.accessToken) {
+            return {
+                report: null,
+                error: "No Stripe connection found",
+            };
+        }
+
+        const stripe = new Stripe(connection.accessToken);
+
+        const report = await stripe.reporting.reportRuns.create({
+            report_type: reportType,
+            parameters: {
+                interval_start: intervalStart,
+                interval_end: intervalEnd,
+            },
+        });
+
+        return {
+            report,
+            error: null,
+        };
+    } catch (error) {
+        console.error("Error creating Stripe report:", error);
+        return {
+            report: null,
+            error: error instanceof Error ? error.message : "Failed to create report",
+        };
     }
 }

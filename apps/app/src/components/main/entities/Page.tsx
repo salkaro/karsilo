@@ -3,15 +3,14 @@
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { entityLimits } from '@/constants/limits';
+import { entityLimits, levelTwoAccess } from '@repo/constants';
 import { useEntities } from '@/hooks/useEntities';
 import { useOrganisation } from '@/hooks/useOrganisation';
-import { levelTwoAccess } from '@/constants/access';
 import AddEntityDialog from './add-entity-dialog';
 import EntityTable from './entity-table';
 import { Box, VStack, Separator, Skeleton, Text, HStack, Badge } from '@repo/ui';
 import { useConnections } from '@/hooks/useConnections';
-import { IConnection } from '@/models/connection';
+import { IConnection } from '@repo/models';
 
 const Page = () => {
     const { data: session } = useSession();

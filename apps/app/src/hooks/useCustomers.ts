@@ -7,7 +7,7 @@ import { useState, useEffect, useCallback } from "react";
 import { retrieveStripeCustomers } from "@/services/stripe/retrieve";
 import { customersCookieKey } from "@/constants/cookies";
 import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";
-import { ICustomer } from "@/models/customer";
+import { ICustomer } from "@repo/models";
 
 interface UseCustomersReturn {
     customers: ICustomer[] | null;

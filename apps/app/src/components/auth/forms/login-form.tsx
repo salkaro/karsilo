@@ -25,10 +25,9 @@ import {
 // Local Imports
 import { auth, firestore } from "@/lib/firebase/config"
 import PreparingForm from "./preparing-form"
-import { usersCol } from "@/constants/collections"
+import { usersCol } from "@repo/constants"
 import { validateEmail, validateEmailInput, validatePasswordInput } from "@/utils/input-validation"
-import type { IUser } from "@/models/user"
-
+import { IUser } from '@repo/models'
 
 
 interface LoginFormProps {

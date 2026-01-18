@@ -17,12 +17,11 @@ import {
 import { toast } from "sonner"
 
 // Local Imports
-import { OrgRoleType } from "@/constants/access"
+import { OrgRoleType, apiTokenAccessLevels, apiTokenAccessLevelsName } from "@repo/constants"
 import { useTokens } from "@/hooks/useTokens"
 import { updateAPIKey } from "@/services/firebase/update"
 import { generateApiKey } from "@/utils/generate"
 import { useOrganisation } from "@/hooks/useOrganisation"
-import { apiTokenAccessLevels, apiTokenAccessLevelsName } from "@/constants/access"
 import {
     Box,
     Button,

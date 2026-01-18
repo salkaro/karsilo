@@ -19,7 +19,7 @@ import {
 import { createBillingPortalUrl } from "@/services/stripe/create"
 import { signOut } from "@/services/sign-out"
 import { useOrganisation } from "@/hooks/useOrganisation"
-import { levelThreeAccess } from "@/constants/access"
+import { levelThreeAccess } from "@repo/constants"
 
 export function SidebarUser() {
     const router = useRouter()

@@ -4,7 +4,7 @@ import { VStack, Tabs, Skeleton } from "@repo/ui"
 import { settingsSubItems } from "@/constants/platform"
 import { useSession } from "next-auth/react";
 import { useOrganisation } from "@/hooks/useOrganisation";
-import { levelTwoAccess } from "@/constants/access";
+import { levelTwoAccess } from "@repo/constants";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Overview from "./overview";

@@ -1,8 +1,8 @@
 "use server";
 
 // Local Imports
-import { firestoreAdmin } from "@/lib/firebase/config-admin";
-import { getEntitiesPath, organisationsCol } from "@/constants/collections";
+import { firestoreAdmin } from "@repo/firebase";
+import { getEntitiesPath, organisationsCol } from "@repo/constants";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function deleteEntity({

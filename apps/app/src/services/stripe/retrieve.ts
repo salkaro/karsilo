@@ -2,7 +2,7 @@
 
 import Stripe from "stripe";
 import { retrieveConnectionByType, retrieveConnection } from "@/services/connections/retrieve";
-import { ICustomer } from "@/models/customer";
+import { ICustomer } from "@repo/models";
 
 const LIMIT = 100;
 
@@ -202,6 +202,184 @@ export async function retrieveStripeInvoices({
             invoices: null,
             hasMore: false,
             error: error instanceof Error ? error.message : "Failed to retrieve invoices",
+        };
+    }
+}
+
+export async function retrieveStripeBalanceTransactions({
+    organisationId,
+    connectionId,
+    startingAfter,
+    created,
+}: {
+    organisationId: string;
+    connectionId: string;
+    startingAfter?: string;
+    created?: { gte?: number; lte?: number };
+}): Promise<{ balanceTransactions: Stripe.BalanceTransaction[] | null; hasMore: boolean; error: string | null }> {
+    try {
+        const connection = await retrieveConnection({
+            organisationId: organisationId,
+            connectionId: connectionId,
+        });
+
+        if (!connection || !connection.accessToken) {
+            return {
+                balanceTransactions: null,
+                hasMore: false,
+                error: "No Stripe connection found",
+            };
+        }
+
+        const stripe = new Stripe(connection.accessToken);
+
+        const balanceTransactions = await stripe.balanceTransactions.list({
+            limit: LIMIT,
+            starting_after: startingAfter,
+            created: created,
+        });
+
+        return {
+            balanceTransactions: balanceTransactions.data,
+            hasMore: balanceTransactions.data.length === LIMIT,
+            error: null,
+        };
+    } catch (error) {
+        console.error("Error retrieving Stripe balance transactions:", error);
+        return {
+            balanceTransactions: null,
+            hasMore: false,
+            error: error instanceof Error ? error.message : "Failed to retrieve balance transactions",
+        };
+    }
+}
+
+export async function retrieveStripeBalance({
+    organisationId,
+    connectionId,
+}: {
+    organisationId: string;
+    connectionId: string;
+}): Promise<{ balance: Stripe.Balance | null; error: string | null }> {
+    try {
+        const connection = await retrieveConnection({
+            organisationId: organisationId,
+            connectionId: connectionId,
+        });
+
+        if (!connection || !connection.accessToken) {
+            return {
+                balance: null,
+                error: "No Stripe connection found",
+            };
+        }
+
+        const stripe = new Stripe(connection.accessToken);
+        const balance = await stripe.balance.retrieve();
+
+        return {
+            balance,
+            error: null,
+        };
+    } catch (error) {
+        console.error("Error retrieving Stripe balance:", error);
+        return {
+            balance: null,
+            error: error instanceof Error ? error.message : "Failed to retrieve balance",
+        };
+    }
+}
+
+export async function retrieveStripeReports({
+    organisationId,
+    connectionId,
+    startingAfter,
+}: {
+    organisationId: string;
+    connectionId: string;
+    startingAfter?: string;
+}): Promise<{ reports: Stripe.Reporting.ReportRun[] | null; hasMore: boolean; error: string | null }> {
+    try {
+        const connection = await retrieveConnection({
+            organisationId: organisationId,
+            connectionId: connectionId,
+        });
+
+        if (!connection || !connection.accessToken) {
+            return {
+                reports: null,
+                hasMore: false,
+                error: "No Stripe connection found",
+            };
+        }
+
+        const stripe = new Stripe(connection.accessToken);
+
+        const reports = await stripe.reporting.reportRuns.list({
+            limit: LIMIT,
+            starting_after: startingAfter,
+        });
+
+        return {
+            reports: reports.data,
+            hasMore: reports.data.length === LIMIT,
+            error: null,
+        };
+    } catch (error) {
+        console.error("Error retrieving Stripe reports:", error);
+        return {
+            reports: null,
+            hasMore: false,
+            error: error instanceof Error ? error.message : "Failed to retrieve reports",
+        };
+    }
+}
+
+export async function retrieveStripeRefunds({
+    organisationId,
+    connectionId,
+    startingAfter,
+    created,
+}: {
+    organisationId: string;
+    connectionId: string;
+    startingAfter?: string;
+    created?: { gte?: number; lte?: number };
+}): Promise<{ refunds: Stripe.Refund[] | null; hasMore: boolean; error: string | null }> {
+    try {
+        const connection = await retrieveConnection({
+            organisationId: organisationId,
+            connectionId: connectionId,
+        });
+
+        if (!connection || !connection.accessToken) {
+            return {
+                refunds: null,
+                hasMore: false,
+                error: "No Stripe connection found",
+            };
+        }
+
+        const stripe = new Stripe(connection.accessToken);
+
+        const refunds = await stripe.refunds.list({
+            limit: LIMIT,
+            starting_after: startingAfter,
+            created: created,
+            expand: ['data.charge', 'data.payment_intent'],
+        });
+
+        return {
+            refunds: refunds.data,
+            hasMore: refunds.data.length === LIMIT,
+            error: null,
+        };
+    } catch (error) {
+        console.error("Error retrieving Stripe refunds:", error);
+        return {
+            refunds: null,
+            hasMore: false,
+            error: error instanceof Error ? error.message : "Failed to retrieve refunds",
         };
     }
 }

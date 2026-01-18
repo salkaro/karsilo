@@ -5,6 +5,7 @@ import { NormalizedDataPoint, NormalizedPoint, SVGChartDataPoint, SVGChartSeries
 import { CHART_PADDING, TOTAL_COLOR, TOTAL_ID } from "./constants";
 import { ChartTooltip } from "./chart-tooltip";
 import { formatCurrency } from "@/utils/formatters";
+import { SVGCustomDot } from "./custom-dot";
 
 
 
@@ -22,6 +23,10 @@ export interface SVGChartProps {
     animated?: boolean;
     /** Currency */
     currency?: string;
+    /** Show X axis labels (dates) at the bottom */
+    showXAxis?: boolean;
+    /** Show Y axis labels (values) on the left side */
+    showYAxis?: boolean;
 }
 
 
@@ -32,7 +37,9 @@ export function SVGChart({
     showGrid = true,
     gridLines = 4,
     animated = true,
-    currency = "USD"
+    currency = "USD",
+    showXAxis = false,
+    showYAxis = false,
 }: SVGChartProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const svgRef = useRef<SVGSVGElement>(null);
@@ -72,38 +79,82 @@ export function SVGChart({
     const chartHeight = dimensions.height;
     const VIEWBOX_PADDING = 20;
 
+    // Adjust padding based on axis visibility
+    const X_AXIS_HEIGHT = showXAxis ? 28 : 0;
+    const Y_AXIS_WIDTH = showYAxis ? 60 : 0;
+
+    // Helper function to calculate nice rounded axis values
+    const getNiceAxisValues = (min: number, max: number, tickCount: number) => {
+        if (max === min) return { niceMin: 0, niceMax: max || 100, tickInterval: (max || 100) / tickCount };
+
+        const range = max - min;
+        const roughInterval = range / tickCount;
+
+        // Find a nice interval (1, 2, 5, 10, 20, 50, 100, 200, 500, etc.)
+        const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
+        const residual = roughInterval / magnitude;
+
+        let niceInterval: number;
+        if (residual <= 1) niceInterval = magnitude;
+        else if (residual <= 2) niceInterval = 2 * magnitude;
+        else if (residual <= 5) niceInterval = 5 * magnitude;
+        else niceInterval = 10 * magnitude;
+
+        // Calculate nice min and max
+        const niceMin = Math.floor(min / niceInterval) * niceInterval;
+        const niceMax = Math.ceil(max / niceInterval) * niceInterval;
+
+        // Always start from 0 for revenue charts
+        return {
+            niceMin: Math.min(0, niceMin),
+            niceMax: niceMax,
+            tickInterval: niceInterval
+        };
+    };
+
     // Normalize all series data to chart coordinates (including total)
-    const normalizedData = useMemo((): NormalizedDataPoint[] => {
-        if (data.length === 0 || series.length === 0) return [];
+    const { normalizedData, niceMin, niceMax, tickInterval } = useMemo((): {
+        normalizedData: NormalizedDataPoint[],
+        niceMin: number,
+        niceMax: number,
+        tickInterval: number
+    } => {
+        if (data.length === 0 || series.length === 0) return { normalizedData: [], niceMin: 0, niceMax: 0, tickInterval: 0 };
 
         // Calculate totals for each data point
         const totals = data.map((point) => point.values.reduce((sum, v) => sum + v.value, 0));
 
         // Find global min/max across all series AND totals
-        let minValue = Infinity;
-        let maxValue = -Infinity;
+        let min = Infinity;
+        let max = -Infinity;
         data.forEach((point, idx) => {
             point.values.forEach((v) => {
-                if (v.value < minValue) minValue = v.value;
-                if (v.value > maxValue) maxValue = v.value;
+                if (v.value < min) min = v.value;
+                if (v.value > max) max = v.value;
             });
             // Include total in min/max calculation
             if (showTotal) {
                 const total = totals[idx];
-                if (total > maxValue) maxValue = total;
-                if (total < minValue) minValue = total;
+                if (total > max) max = total;
+                if (total < min) min = total;
             }
         });
 
-        if (minValue === Infinity) minValue = 0;
-        if (maxValue === -Infinity) maxValue = 0;
-        const range = maxValue - minValue || 1;
+        if (min === Infinity) min = 0;
+        if (max === -Infinity) max = 0;
 
-        const availableWidth = chartWidth - CHART_PADDING.left - CHART_PADDING.right;
-        const availableHeight = chartHeight - CHART_PADDING.top - CHART_PADDING.bottom;
+        // Get nice rounded values for the axis
+        const { niceMin: axisMin, niceMax: axisMax, tickInterval: interval } = getNiceAxisValues(min, max, gridLines);
+        const range = axisMax - axisMin || 1;
 
-        return data.map((point, index) => {
-            const x = CHART_PADDING.left + (index / (data.length - 1 || 1)) * availableWidth;
+        // Chart area excludes axis labels
+        const chartAreaLeft = Y_AXIS_WIDTH;
+        const chartAreaTop = CHART_PADDING.top;
+        const chartAreaWidth = chartWidth - Y_AXIS_WIDTH - CHART_PADDING.right;
+        const chartAreaHeight = chartHeight - X_AXIS_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom;
+
+        const normalized = data.map((point, index) => {
+            const x = chartAreaLeft + (index / (data.length - 1 || 1)) * chartAreaWidth;
 
             const seriesData: Record<string, NormalizedPoint> = {};
 
@@ -111,13 +162,13 @@ export function SVGChart({
             series.forEach((s, seriesIndex) => {
                 const valueData = point.values[seriesIndex];
                 if (valueData) {
-                    const normalizedY = (valueData.value - minValue) / range;
-                    const y = CHART_PADDING.top + availableHeight - normalizedY * availableHeight;
+                    const normalizedY = (valueData.value - axisMin) / range;
+                    const y = chartAreaTop + chartAreaHeight - normalizedY * chartAreaHeight;
                     seriesData[s.id] = {
                         x,
                         y,
                         value: valueData.value,
-                        displayValue: formatCurrency(valueData.value, currency),
+                        displayValue: formatCurrency({ amount: valueData.value, currency }),
                     };
                 }
             });
@@ -125,13 +176,13 @@ export function SVGChart({
             // Add total series if multiple series
             if (showTotal) {
                 const total = totals[index];
-                const normalizedY = (total - minValue) / range;
-                const y = CHART_PADDING.top + availableHeight - normalizedY * availableHeight;
+                const normalizedY = (total - axisMin) / range;
+                const y = chartAreaTop + chartAreaHeight - normalizedY * chartAreaHeight;
                 seriesData[TOTAL_ID] = {
                     x,
                     y,
                     value: total,
-                    displayValue: formatCurrency(total, currency),
+                    displayValue: formatCurrency({ amount: total, currency }),
                 };
             }
 
@@ -141,7 +192,14 @@ export function SVGChart({
                 series: seriesData,
             };
         });
-    }, [data, series, chartWidth, chartHeight, showTotal, currency]);
+
+        return { normalizedData: normalized, niceMin: axisMin, niceMax: axisMax, tickInterval: interval };
+    }, [data, series, chartWidth, chartHeight, showTotal, currency, X_AXIS_HEIGHT, Y_AXIS_WIDTH, gridLines]);
+
+    // Calculate chart area bounds for rendering
+    const chartAreaTop = CHART_PADDING.top;
+    const chartAreaHeight = chartHeight - X_AXIS_HEIGHT - CHART_PADDING.top - CHART_PADDING.bottom;
+    const chartAreaBottom = chartAreaTop + chartAreaHeight;
 
     const getLinePath = useCallback((points: { x: number; y: number }[]) => {
         if (points.length === 0) return "";
@@ -371,19 +429,73 @@ export function SVGChart({
                 </defs>
 
                 {/* Grid lines */}
-                {showGrid &&
-                    Array.from({ length: gridLines + 1 }).map((_, i) => (
-                        <line
-                            key={i}
-                            x1="0"
-                            y1={(i * chartHeight) / gridLines}
-                            x2={chartWidth}
-                            y2={(i * chartHeight) / gridLines}
-                            stroke="#374151"
-                            strokeWidth="0.5"
-                            strokeDasharray="4 4"
-                        />
-                    ))}
+                {showGrid && (() => {
+                    // Calculate number of ticks based on nice values
+                    const numTicks = tickInterval > 0 ? Math.round((niceMax - niceMin) / tickInterval) : gridLines;
+                    return Array.from({ length: numTicks + 1 }).map((_, i) => {
+                        const y = chartAreaTop + chartAreaHeight - (i / numTicks) * chartAreaHeight;
+                        return (
+                            <line
+                                key={i}
+                                x1={Y_AXIS_WIDTH}
+                                y1={y}
+                                x2={chartWidth}
+                                y2={y}
+                                stroke="#374151"
+                                strokeWidth="0.5"
+                                strokeDasharray="4 4"
+                            />
+                        );
+                    });
+                })()}
+
+                {/* Y Axis labels (values on the left) */}
+                {showYAxis && (() => {
+                    // Calculate number of ticks based on nice values
+                    const numTicks = tickInterval > 0 ? Math.round((niceMax - niceMin) / tickInterval) : gridLines;
+                    return Array.from({ length: numTicks + 1 }).map((_, i) => {
+                        const value = niceMin + i * tickInterval;
+                        // Format as compact currency (e.g., £100, £1K, £10K)
+                        const formattedValue = formatCurrency({ amount: value, decimals: 0 })
+
+                        const y = chartAreaTop + chartAreaHeight - (i / numTicks) * chartAreaHeight;
+                        return (
+                            <text
+                                key={`y-axis-${i}`}
+                                x={Y_AXIS_WIDTH - 16}
+                                y={y + 4}
+                                fill="#9ca3af"
+                                fontSize="11"
+                                textAnchor="end"
+                                fontFamily="system-ui, sans-serif"
+                            >
+                                {formattedValue}
+                            </text>
+                        );
+                    });
+                })()}
+
+                {/* X Axis labels (dates at the bottom) */}
+                {showXAxis &&
+                    normalizedData.map((point, i) => {
+                        // Show fewer labels if there are many data points
+                        const showEvery = normalizedData.length > 10 ? Math.ceil(normalizedData.length / 6) : 1;
+                        if (i % showEvery !== 0 && i !== normalizedData.length - 1) return null;
+
+                        return (
+                            <text
+                                key={`x-axis-${i}`}
+                                x={point.x - 10}
+                                y={chartAreaTop + chartAreaHeight + 32}
+                                fill="#9ca3af"
+                                fontSize="11"
+                                textAnchor="middle"
+                                fontFamily="system-ui, sans-serif"
+                            >
+                                {point.label}
+                            </text>
+                        );
+                    })}
 
                 {/* Render each series (individual series first, then total on top) */}
                 {allSeries.map((s) => {
@@ -392,7 +504,9 @@ export function SVGChart({
 
                     const isTotal = s.id === TOTAL_ID;
                     const linePath = getLinePath(points);
-                    const areaPath = linePath ? `${linePath} L${chartWidth} ${chartHeight} L0 ${chartHeight} Z` : "";
+                    const firstX = points[0]?.x ?? Y_AXIS_WIDTH;
+                    const lastX = points[points.length - 1]?.x ?? chartWidth;
+                    const areaPath = linePath ? `${linePath} L${lastX} ${chartAreaBottom} L${firstX} ${chartAreaBottom} Z` : "";
 
                     return (
                         <g key={s.id}>
@@ -410,12 +524,12 @@ export function SVGChart({
                                     d={
                                         animatedProgress > 0
                                             ? (() => {
-                                                  const progressPath = getProgressPath(animatedProgress, s.id);
-                                                  const endPoint = getProgressEndPoint(animatedProgress, s.id);
-                                                  if (!progressPath || !endPoint) return `M0 ${chartHeight} L0 ${chartHeight} Z`;
-                                                  return `${progressPath} L${endPoint.x} ${chartHeight} L0 ${chartHeight} Z`;
-                                              })()
-                                            : `M0 ${chartHeight} L0 ${chartHeight} Z`
+                                                const progressPath = getProgressPath(animatedProgress, s.id);
+                                                const endPoint = getProgressEndPoint(animatedProgress, s.id);
+                                                if (!progressPath || !endPoint) return `M${firstX} ${chartAreaBottom} L${firstX} ${chartAreaBottom} Z`;
+                                                return `${progressPath} L${endPoint.x} ${chartAreaBottom} L${firstX} ${chartAreaBottom} Z`;
+                                            })()
+                                            : `M${firstX} ${chartAreaBottom} L${firstX} ${chartAreaBottom} Z`
                                     }
                                     fill={`url(#gradHL-${s.id})`}
                                     style={{
@@ -448,18 +562,15 @@ export function SVGChart({
                                 />
                             )}
 
-                            {/* Data points */}
+                            {/* Data points - using SVGCustomDot component */}
                             {points.map((point, i) => (
-                                <circle
+                                <SVGCustomDot
                                     key={i}
                                     cx={point.x}
                                     cy={point.y}
-                                    r={hoveredIndex === i ? (isTotal ? 6 : 8) : isTotal ? 3 : 4}
-                                    fill={s.color}
-                                    stroke={isTotal ? "#111827" : "white"}
-                                    strokeWidth={hoveredIndex === i ? 3 : 2}
-                                    style={{ transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)" }}
-                                    filter={hoveredIndex === i ? "url(#glow)" : undefined}
+                                    color={s.color}
+                                    active={hoveredIndex === i}
+                                    isTotal={isTotal}
                                 />
                             ))}
                         </g>
@@ -470,13 +581,14 @@ export function SVGChart({
                 {hoveredIndex !== null && normalizedData[hoveredIndex] && (
                     <line
                         x1={normalizedData[hoveredIndex]!.x}
-                        y1={0}
+                        y1={chartAreaTop}
                         x2={normalizedData[hoveredIndex]!.x}
-                        y2={chartHeight}
+                        y2={chartAreaBottom}
                         stroke="#8b5cf6"
                         strokeWidth="1"
                         strokeDasharray="4 4"
                         opacity={0.6}
+                        z={10}
                         style={{ transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)" }}
                     />
                 )}
@@ -486,7 +598,7 @@ export function SVGChart({
                     normalizedData[hoveredIndex] &&
                     (() => {
                         return (
-                            <ChartTooltip 
+                            <ChartTooltip
                                 allSeries={allSeries}
                                 normalizedData={normalizedData}
                                 hoveredIndex={hoveredIndex}

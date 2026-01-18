@@ -6,11 +6,10 @@ import { LuZap, LuRocket, LuStar, LuCrown, LuUsers, LuCreditCard } from "react-i
 import { toast } from "sonner"
 
 // Local Imports
-import { memberLimits } from "@/constants/limits"
-import { levelThreeAccess } from "@/constants/access"
+import { memberLimits, levelThreeAccess } from "@repo/constants"
 import { useOrganisation } from "@/hooks/useOrganisation"
 import { createBillingPortalUrl } from "@/services/stripe/create"
-import { IOrganisation, SubscriptionType } from "@/models/organisation"
+import { IOrganisation, SubscriptionType } from "@repo/models"
 import {
     Box,
     Button,

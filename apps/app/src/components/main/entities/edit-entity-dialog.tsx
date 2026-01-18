@@ -1,6 +1,6 @@
 "use client";
 
-import { IEntity } from '@/models/entity';
+import { IEntity } from '@repo/models';
 import { updateEntity } from '@/services/firebase/entities/update';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -19,8 +19,6 @@ import {
     Textarea,
     VStack,
     Field,
-    Text,
-    HStack,
     Portal,
 } from '@repo/ui';
 

@@ -2,10 +2,9 @@
 
 // Local Imports
 import { increment } from "firebase/firestore";
-import { firestoreAdmin } from "@/lib/firebase/config-admin";
+import { firestoreAdmin } from "@repo/firebase";
 import { retrieveUIDAdmin } from "./admin-retrieve";
-import { levelTwoAccess } from "@/constants/access";
-import { organisationsCol, usersCol } from "@/constants/collections";
+import { organisationsCol, usersCol, levelTwoAccess } from "@repo/constants";
 
 export async function incrementOrganisationMembersCount({ idToken, orgId, negate }: { idToken: string, orgId: string, negate: boolean }) {
     try {

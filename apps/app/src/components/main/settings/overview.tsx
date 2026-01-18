@@ -6,7 +6,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 // Local imports
-import { IUser } from "@/models/user"
+import { IUser } from "@repo/models"
 import { updateUser } from "@/services/firebase/update"
 import { formatDateByTimeAgo } from "@/utils/formatters"
 import {

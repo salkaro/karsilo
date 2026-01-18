@@ -1,4 +1,4 @@
-import { OrgRoleType } from "@/constants/access";
+import { OrgRoleType } from "@repo/constants";
 
 export type EmailVerification = "unverified" | "verifying" | "verified";
 

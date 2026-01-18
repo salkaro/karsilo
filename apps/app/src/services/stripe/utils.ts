@@ -1,4 +1,4 @@
-import { ChargeType } from "@/models/charge"
+import { ChargeType } from "@repo/models"
 
 export function extractOneTimeOrRecurring(receipt_url: string): ChargeType {
     if (!receipt_url) {

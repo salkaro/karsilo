@@ -1,6 +1,6 @@
 "use client";
 
-import { IEntity } from '@/models/entity';
+import { IEntity, IConnection } from '@repo/models';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import {
@@ -21,7 +21,6 @@ import {
     Portal,
     Separator,
 } from '@repo/ui';
-import { IConnection } from '@/models/connection';
 import { StripeIcon } from '@/icons/icons';
 
 interface Props {

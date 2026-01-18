@@ -1,8 +1,8 @@
 "use server";
 
 // Local Imports
-import { firestoreAdmin, admin } from "@/lib/firebase/config-admin";
-import { getConnectionsPath } from "@/constants/collections";
+import { getConnectionsPath } from "@repo/constants";
+import { firestoreAdmin, admin } from "@repo/firebase";
 
 export async function updateConnection({
     connectionId,

@@ -1,4 +1,4 @@
-export function formatCurrency(amount: number, currency?: string) {
+export function formatCurrency({ amount, currency, decimals = 2 }: { amount: number, currency?: string, decimals?: number }) {
     if (!isFinite(amount)) return "0";
 
     const abs = Math.abs(amount);
@@ -20,7 +20,7 @@ export function formatCurrency(amount: number, currency?: string) {
 
     // No currency → just compacted number
     if (!currency) {
-        return compactValue ?? amount.toFixed(2);
+        return compactValue ?? amount.toFixed(decimals);
     }
 
     // Small numbers → normal currency formatting
@@ -59,20 +59,38 @@ export function formatDateRange(filter: string) {
     const nowUnix = Math.floor(now.getTime() / 1000);
 
     switch (filter) {
+        case "week": {
+            const weekAgo = new Date(now);
+            weekAgo.setDate(weekAgo.getDate() - 7);
+            return {
+                from: Math.floor(weekAgo.getTime() / 1000),
+                to: nowUnix,
+            };
+        }
+
         case 'month': {
             const monthAgo = new Date(now);
             monthAgo.setMonth(monthAgo.getMonth() - 1);
-            return { from: Math.floor(monthAgo.getTime() / 1000), to: nowUnix };
+            return {
+                from: Math.floor(monthAgo.getTime() / 1000),
+                to: nowUnix
+            };
         }
         case 'quarter': {
             const quarterAgo = new Date(now);
             quarterAgo.setMonth(quarterAgo.getMonth() - 3);
-            return { from: Math.floor(quarterAgo.getTime() / 1000), to: nowUnix };
+            return {
+                from: Math.floor(quarterAgo.getTime() / 1000),
+                to: nowUnix
+            };
         }
         case 'year': {
             const yearAgo = new Date(now);
             yearAgo.setFullYear(yearAgo.getFullYear() - 1);
-            return { from: Math.floor(yearAgo.getTime() / 1000), to: nowUnix };
+            return {
+                from: Math.floor(yearAgo.getTime() / 1000),
+                to: nowUnix
+            };
         }
         default:
             return {};

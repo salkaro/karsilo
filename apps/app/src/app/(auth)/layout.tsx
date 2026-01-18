@@ -1,7 +1,7 @@
 // Local Imports
 import { Providers } from "../providers";
 import ChartsAndMetrics from "@/components/ui/demo-charts-and-metrics";
-import { shortenedTitle, title } from "@/constants/site";
+import { shortenedTitle, title } from "@repo/constants";
 import { Flex, Text, Avatar, Grid } from "@repo/ui";
 
 // External Imports

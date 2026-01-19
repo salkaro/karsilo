@@ -27,11 +27,13 @@ stripe.api_key = os.getenv("STRIPE_API_KEY")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup event: run the initial subscription check
-    try:
-        await run_initial_subscription_check()
-        print("Initial subscription check completed successfully.")
-    except Exception as error:
-        print(f"Failed to run initial subscription check: {error}")
+    # Skip in serverless environment (Vercel) as cold starts should be fast
+    if os.getenv("VERCEL") is None:
+        try:
+            await run_initial_subscription_check()
+            print("Initial subscription check completed successfully.")
+        except Exception as error:
+            print(f"Failed to run initial subscription check: {error}")
 
     # Yield control to FastAPI to serve requests
     yield
@@ -93,6 +95,36 @@ app.add_middleware(
 @limiter.limit("5/second")
 async def root(request: Request):
     return {"name": "IoT Salkaro Payments API", "version": "1.0.0", "status": "active"}
+
+
+@app.post("/sync-subscriptions")
+@limiter.limit("1/minute")
+async def sync_subscriptions(request: Request):
+    """
+    Manually trigger subscription sync. Useful for Vercel cron jobs or manual sync.
+    Protected by CRON_SECRET header.
+    """
+    auth_header = request.headers.get("Authorization")
+    cron_secret = os.getenv("CRON_SECRET")
+
+    if cron_secret and auth_header != f"Bearer {cron_secret}":
+        return JSONResponse(
+            content={"message": "Unauthorized"},
+            status_code=401
+        )
+
+    try:
+        await run_initial_subscription_check()
+        return JSONResponse(
+            content={"message": "Subscription sync completed successfully"},
+            status_code=200
+        )
+    except Exception as error:
+        print(f"Failed to sync subscriptions: {error}")
+        return JSONResponse(
+            content={"message": "Failed to sync subscriptions", "error": str(error)},
+            status_code=500
+        )
 
 
 async def setup_endpoint(request: Request, secret: str):

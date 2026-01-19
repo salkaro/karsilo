@@ -56,7 +56,9 @@ const Billing = () => {
                             Manage
                         </Button>
                     </HStack>
-                    <StripePricingTable />
+                    <Box marginBottom={20}>
+                        <StripePricingTable />
+                    </Box>
                 </>
             )}
             <CurrentSubscription organisation={organisation as IOrganisation} hasLevelThreeAccess={hasLevelThreeAccess} />

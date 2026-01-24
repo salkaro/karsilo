@@ -19,6 +19,13 @@ export const levelsToColors = {
     "owner": "#404EC0",
 };
 
+export const apiAccess = {
+    "free": false,
+    "starter": false,
+    "growth": true,
+    "pro": true
+}
+
 export const apiTokenAccessLevels = {
     0: "00", // Admin
 };

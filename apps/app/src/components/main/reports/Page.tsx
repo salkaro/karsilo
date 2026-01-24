@@ -72,7 +72,7 @@ export default function ReportsPage() {
 
     if (loading) {
         return (
-            <VStack p={{ base: 4, md: 6 }} gap={6} align="stretch">
+            <VStack gap={6} align="stretch">
                 <ReportsSkeleton />
             </VStack>
         );

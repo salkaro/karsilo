@@ -27,7 +27,7 @@ export async function retrieveAllOrganisations(): Promise<IOrganisation[]> {
  * Retrieves organisations that have a paid subscription (not free)
  */
 export async function retrievePaidOrganisations(): Promise<IOrganisation[]> {
-    const paidPlans: SubscriptionType[] = ["growth", "essential", "pro"];
+    const paidPlans: SubscriptionType[] = ["starter", "growth", "pro"];
 
     const snapshot = await firestoreAdmin
         .collection(organisationsCol)

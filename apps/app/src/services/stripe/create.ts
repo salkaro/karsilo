@@ -110,6 +110,57 @@ export type ReportType =
     | "connected_account_payout_reconciliation.summary.1"
     | "connected_account_ending_balance_reconciliation.itemized.4";
 
+// Plain object representation of a Stripe report run for serialization
+export interface PlainReportRun {
+    id: string;
+    object: string;
+    created: number;
+    error: string | null;
+    livemode: boolean;
+    parameters: {
+        interval_start?: number;
+        interval_end?: number;
+        columns?: string[];
+        connected_account?: string;
+        currency?: string;
+        reporting_category?: string;
+        timezone?: string;
+    };
+    report_type: string;
+    result: {
+        id: string;
+        url: string | null;
+    } | null;
+    status: string;
+    succeeded_at: number | null;
+}
+
+function serializeReportRun(report: Stripe.Reporting.ReportRun): PlainReportRun {
+    return {
+        id: report.id,
+        object: report.object,
+        created: report.created,
+        error: report.error ?? null,
+        livemode: report.livemode,
+        parameters: {
+            interval_start: report.parameters?.interval_start,
+            interval_end: report.parameters?.interval_end,
+            columns: report.parameters?.columns,
+            connected_account: report.parameters?.connected_account,
+            currency: report.parameters?.currency,
+            reporting_category: report.parameters?.reporting_category,
+            timezone: report.parameters?.timezone,
+        },
+        report_type: report.report_type,
+        result: report.result ? {
+            id: report.result.id,
+            url: report.result.url ?? null,
+        } : null,
+        status: report.status,
+        succeeded_at: report.succeeded_at ?? null,
+    };
+}
+
 export async function createStripeReport({
     organisationId,
     connectionId,
@@ -122,7 +173,7 @@ export async function createStripeReport({
     reportType: ReportType;
     intervalStart: number; // Unix timestamp
     intervalEnd: number;   // Unix timestamp
-}): Promise<{ report: Stripe.Reporting.ReportRun | null; error: string | null }> {
+}): Promise<{ report: PlainReportRun | null; error: string | null }> {
     try {
         const connection = await retrieveConnection({
             organisationId: organisationId,
@@ -147,14 +198,38 @@ export async function createStripeReport({
         });
 
         return {
-            report,
+            report: serializeReportRun(report),
             error: null,
         };
     } catch (error) {
         console.error("Error creating Stripe report:", error);
+
+        // Extract user-friendly error message from Stripe errors
+        let errorMessage = "Failed to create report";
+
+        if (error instanceof Stripe.errors.StripeError) {
+            const stripeError = error as Stripe.errors.StripeInvalidRequestError;
+
+            // Check for data availability errors (interval_start too early)
+            if (stripeError.param === "parameters.interval_start" && stripeError.message) {
+                // Extract the available start date from the error message
+                const dateMatch = stripeError.message.match(/available starting at (\d{4}-\d{2}-\d{2})/);
+                if (dateMatch) {
+                    const availableDate = dateMatch[1];
+                    errorMessage = `Data for this report type is only available from ${availableDate}. Please select a more recent date range.`;
+                } else {
+                    errorMessage = "The selected date range is too early. Please select a more recent start date.";
+                }
+            } else if (stripeError.message) {
+                errorMessage = stripeError.message;
+            }
+        } else if (error instanceof Error) {
+            errorMessage = error.message;
+        }
+
         return {
             report: null,
-            error: error instanceof Error ? error.message : "Failed to create report",
+            error: errorMessage,
         };
     }
 }

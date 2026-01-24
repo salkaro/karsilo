@@ -25,11 +25,11 @@ import {
 
 /**
  * Plan tiers for report generation
- * - Starter: growth plan - weekly reports only
- * - Growth: essential, pro plans - weekly + monthly/quarterly/yearly
+ * - Starter: starter plan - weekly reports only
+ * - Growth: growth, pro plans - weekly + monthly/quarterly/yearly
  */
-const STARTER_PLANS: SubscriptionType[] = ["growth"];
-const GROWTH_PLANS: SubscriptionType[] = ["essential", "pro"];
+const STARTER_PLANS: SubscriptionType[] = ["starter"];
+const GROWTH_PLANS: SubscriptionType[] = ["growth", "pro"];
 const ALL_PAID_PLANS: SubscriptionType[] = [...STARTER_PLANS, ...GROWTH_PLANS];
 
 interface ReportJobResult {

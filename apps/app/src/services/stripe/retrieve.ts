@@ -3,6 +3,7 @@
 import Stripe from "stripe";
 import { retrieveConnectionByType, retrieveConnection } from "@/services/connections/retrieve";
 import { ICustomer } from "@repo/models";
+import { PlainReportRun } from "./create";
 
 const LIMIT = 100;
 
@@ -290,6 +291,32 @@ export async function retrieveStripeBalance({
     }
 }
 
+function serializeReportRun(report: Stripe.Reporting.ReportRun): PlainReportRun {
+    return {
+        id: report.id,
+        object: report.object,
+        created: report.created,
+        error: report.error ?? null,
+        livemode: report.livemode,
+        parameters: {
+            interval_start: report.parameters?.interval_start,
+            interval_end: report.parameters?.interval_end,
+            columns: report.parameters?.columns,
+            connected_account: report.parameters?.connected_account,
+            currency: report.parameters?.currency,
+            reporting_category: report.parameters?.reporting_category,
+            timezone: report.parameters?.timezone,
+        },
+        report_type: report.report_type,
+        result: report.result ? {
+            id: report.result.id,
+            url: report.result.url ?? null,
+        } : null,
+        status: report.status,
+        succeeded_at: report.succeeded_at ?? null,
+    };
+}
+
 export async function retrieveStripeReports({
     organisationId,
     connectionId,
@@ -298,7 +325,7 @@ export async function retrieveStripeReports({
     organisationId: string;
     connectionId: string;
     startingAfter?: string;
-}): Promise<{ reports: Stripe.Reporting.ReportRun[] | null; hasMore: boolean; error: string | null }> {
+}): Promise<{ reports: PlainReportRun[] | null; hasMore: boolean; error: string | null }> {
     try {
         const connection = await retrieveConnection({
             organisationId: organisationId,
@@ -321,7 +348,7 @@ export async function retrieveStripeReports({
         });
 
         return {
-            reports: reports.data,
+            reports: reports.data.map(serializeReportRun),
             hasMore: reports.data.length === LIMIT,
             error: null,
         };

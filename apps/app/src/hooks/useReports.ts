@@ -1,11 +1,10 @@
 "use client";
 
-import Stripe from "stripe";
 import { useState, useEffect, useCallback } from "react";
 
 import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";
 import { retrieveStripeReports } from "@/services/stripe/retrieve";
-import { createStripeReport, ReportType } from "@/services/stripe/create";
+import { createStripeReport, ReportType, PlainReportRun } from "@/services/stripe/create";
 import { retrieveAllConnections } from "@/services/connections/retrieve";
 import { reportsCookieKey } from "@/constants/cookies";
 
@@ -48,7 +47,7 @@ export function useReports(params: UseReportsParams | string | null): UseReports
     const [error, setError] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState<Record<string, boolean>>({});
 
-    const transformReport = (report: Stripe.Reporting.ReportRun): IReport => ({
+    const transformReport = (report: PlainReportRun): IReport => ({
         id: report.id,
         reportType: report.report_type,
         status: report.status === "succeeded" ? "succeeded" :

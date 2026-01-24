@@ -22,8 +22,6 @@ import {
     VStack,
     Field,
     Text,
-    Badge,
-    HStack,
     Portal,
 } from "@repo/ui";
 import { Plus } from "lucide-react";

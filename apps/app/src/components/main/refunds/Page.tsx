@@ -85,7 +85,7 @@ const Page = () => {
 
     if (isInitialLoad) {
         return (
-            <VStack p={{ base: 4, md: 6 }} gap={6} align="stretch">
+            <VStack gap={6} align="stretch">
                 <RefundsSkeleton />
             </VStack>
         );
@@ -98,7 +98,6 @@ const Page = () => {
                     borderRadius="lg"
                     border="1px solid"
                     borderColor="gray.200"
-                    p={8}
                     textAlign="center"
                 >
                     <VStack gap={4}>

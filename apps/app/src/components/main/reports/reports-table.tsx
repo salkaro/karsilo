@@ -203,9 +203,8 @@ export const ReportsTable = ({
                             color="blue.500"
                             _hover={{ color: "blue.600" }}
                         >
-                            <HStack gap={1}>
-                                <Download size={14} />
-                                <Text fontSize="sm">Download</Text>
+                            <HStack gap={1} marginRight={2}>
+                                <Download size={20} />
                             </HStack>
                         </Link>
                     );

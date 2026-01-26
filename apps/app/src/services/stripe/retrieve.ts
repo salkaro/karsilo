@@ -45,6 +45,7 @@ export async function retrieveStripeCustomers({
             email: customer.email || undefined,
             phone: customer.phone || undefined,
             status: customer.deleted ? "deleted" : "active",
+            country: customer.address?.country,
             currency: customer.currency || undefined,
             createdAt: customer.created,
         }));
@@ -255,13 +256,31 @@ export async function retrieveStripeBalanceTransactions({
     }
 }
 
+export interface PlainBalance {
+    available: Array<{ amount: number; currency: string; }>;
+    pending: Array<{ amount: number; currency: string; }>;
+}
+
+function serializeBalance(balance: Stripe.Balance): PlainBalance {
+    return {
+        available: balance.available.map(b => ({
+            amount: b.amount,
+            currency: b.currency,
+        })),
+        pending: balance.pending.map(b => ({
+            amount: b.amount,
+            currency: b.currency,
+        })),
+    };
+}
+
 export async function retrieveStripeBalance({
     organisationId,
     connectionId,
 }: {
     organisationId: string;
     connectionId: string;
-}): Promise<{ balance: Stripe.Balance | null; error: string | null }> {
+}): Promise<{ balance: PlainBalance | null; error: string | null }> {
     try {
         const connection = await retrieveConnection({
             organisationId: organisationId,
@@ -279,7 +298,7 @@ export async function retrieveStripeBalance({
         const balance = await stripe.balance.retrieve();
 
         return {
-            balance,
+            balance: serializeBalance(balance),
             error: null,
         };
     } catch (error) {
@@ -358,6 +377,101 @@ export async function retrieveStripeReports({
             reports: null,
             hasMore: false,
             error: error instanceof Error ? error.message : "Failed to retrieve reports",
+        };
+    }
+}
+
+export async function retrieveStripeProducts({
+    organisationId,
+    connectionId,
+    startingAfter,
+}: {
+    organisationId: string;
+    connectionId: string;
+    startingAfter?: string;
+}): Promise<{ products: Stripe.Product[] | null; hasMore: boolean; error: string | null }> {
+    try {
+        const connection = await retrieveConnection({
+            organisationId: organisationId,
+            connectionId: connectionId,
+        });
+
+        if (!connection || !connection.accessToken) {
+            return {
+                products: null,
+                hasMore: false,
+                error: "No Stripe connection found",
+            };
+        }
+
+        const stripe = new Stripe(connection.accessToken);
+
+        const products = await stripe.products.list({
+            limit: LIMIT,
+            starting_after: startingAfter,
+            expand: ['data.default_price'],
+        });
+
+        return {
+            products: products.data,
+            hasMore: products.data.length === LIMIT,
+            error: null,
+        };
+    } catch (error) {
+        console.error("Error retrieving Stripe products:", error);
+        return {
+            products: null,
+            hasMore: false,
+            error: error instanceof Error ? error.message : "Failed to retrieve products",
+        };
+    }
+}
+
+export async function retrieveStripePrices({
+    organisationId,
+    connectionId,
+    productId,
+    startingAfter,
+}: {
+    organisationId: string;
+    connectionId: string;
+    productId?: string;
+    startingAfter?: string;
+}): Promise<{ prices: Stripe.Price[] | null; hasMore: boolean; error: string | null }> {
+    try {
+        const connection = await retrieveConnection({
+            organisationId: organisationId,
+            connectionId: connectionId,
+        });
+
+        if (!connection || !connection.accessToken) {
+            return {
+                prices: null,
+                hasMore: false,
+                error: "No Stripe connection found",
+            };
+        }
+
+        const stripe = new Stripe(connection.accessToken);
+
+        const prices = await stripe.prices.list({
+            limit: LIMIT,
+            starting_after: startingAfter,
+            product: productId,
+            expand: ['data.product'],
+        });
+
+        return {
+            prices: prices.data,
+            hasMore: prices.data.length === LIMIT,
+            error: null,
+        };
+    } catch (error) {
+        console.error("Error retrieving Stripe prices:", error);
+        return {
+            prices: null,
+            hasMore: false,
+            error: error instanceof Error ? error.message : "Failed to retrieve prices",
         };
     }
 }

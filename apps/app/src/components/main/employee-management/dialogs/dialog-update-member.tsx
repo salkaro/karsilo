@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 
 import {
     Box,
-    Grid,
     Input,
     NativeSelect,
     Text,
@@ -95,10 +94,7 @@ const UpdateMemberDialog: React.FC<Props> = ({ member, organisation, refetch, on
                     />
                 </Box>
                 {/* Access Level */}
-                <Grid templateColumns="1fr 3fr" alignItems="center" gap={4}>
-                    <Text fontWeight="medium" fontSize="sm" textAlign="right">
-                        Access Level
-                    </Text>
+                <Box>
                     <NativeSelect.Root>
                         <NativeSelect.Field
                             value={accessLevel}
@@ -111,7 +107,7 @@ const UpdateMemberDialog: React.FC<Props> = ({ member, organisation, refetch, on
                             ))}
                         </NativeSelect.Field>
                     </NativeSelect.Root>
-                </Grid>
+                </Box>
             </VStack>
         </CustomDialog>
     )

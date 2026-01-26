@@ -1,6 +1,6 @@
 "use client"
 
-import { VStack, Tabs, Skeleton } from "@repo/ui"
+import { VStack, Tabs, Skeleton, Box } from "@repo/ui"
 import { settingsSubItems } from "@/constants/platform"
 import { useSession } from "next-auth/react";
 import { useOrganisation } from "@/hooks/useOrganisation";
@@ -84,14 +84,16 @@ const Page = () => {
     }
 
     return (
-        <VStack align="stretch" gap={6}>
+        <VStack align="stretch">
             <Tabs.Root value={value} onValueChange={updateHash}>
                 <Tabs.List>
                     {tabs.map((item) => {
                         const IconComponent = item.icon
                         return (
                             <Tabs.Trigger key={item.url} value={item.url.split("#")[1]}>
-                                <IconComponent size={16} />
+                                <Box display={{ base: "none", md: "inline-flex" }}>
+                                    <IconComponent size={16} />
+                                </Box>
                                 {item.title}
                             </Tabs.Trigger>
                         )

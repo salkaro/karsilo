@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import { useState, useEffect, useCallback } from "react";
 
 import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";
-import { retrieveStripeBalanceTransactions, retrieveStripeBalance } from "@/services/stripe/retrieve";
+import { retrieveStripeBalanceTransactions, retrieveStripeBalance, PlainBalance } from "@/services/stripe/retrieve";
 import { retrieveAllConnections } from "@/services/connections/retrieve";
 import { balanceTransactionsCookieKey } from "@/constants/cookies";
 
@@ -76,7 +76,7 @@ export function useBalanceTransactions(params: UseBalanceTransactionsParams | st
         source: typeof txn.source === 'string' ? txn.source : txn.source?.id || null,
     });
 
-    const transformBalance = (balance: Stripe.Balance): IBalance => ({
+    const transformBalance = (balance: PlainBalance): IBalance => ({
         available: balance.available.map(b => ({
             amount: b.amount / 100,
             currency: b.currency.toUpperCase(),

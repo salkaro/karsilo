@@ -5,9 +5,10 @@ import { useCustomers } from '@/hooks/useCustomers'
 import { useOrganisation } from '@/hooks/useOrganisation'
 import { ICustomer } from '@repo/models';
 import { formatDateByTimeAgo } from '@/utils/formatters';
-import { Avatar, Badge, Box, HStack, Text } from '@repo/ui';
+import { Avatar, Badge, Box, HStack, Text, VStack } from '@repo/ui';
 import { Users } from 'lucide-react';
 import { useMemo } from 'react';
+import { WorldMap, CountryData } from '@/components/ui/world-map';
 
 const Page = () => {
     const { organisation, loading: loadingOrganisation } = useOrganisation();
@@ -70,6 +71,15 @@ const Page = () => {
             ),
         },
         {
+            key: "country",
+            header: "Country",
+            render: (customer: ICustomer) => (
+                <Text fontSize="sm" color="gray.600">
+                    {customer.country ?? "Unknown"}
+                </Text>
+            ),
+        },
+        {
             key: "date",
             header: "Date",
             render: (customer: ICustomer) => (
@@ -90,6 +100,7 @@ const Page = () => {
         return (
             (customer.name?.toLowerCase().includes(q) ?? false) ||
             (customer.email?.toLowerCase().includes(q) ?? false) ||
+            (customer.email?.toLowerCase().includes(q) ?? false) ||
             (customer.currency?.toLowerCase().includes(q) ?? false)
         );
     };
@@ -103,14 +114,42 @@ const Page = () => {
                 iconColor: "purple.500",
                 iconBg: "purple.500/10",
                 label: "",
-                value: numCustomers 
+                value: numCustomers
             },
         ];
     }, [customers]);
 
+    // Aggregate customers by country for the map
+    const countryData: CountryData[] = useMemo(() => {
+        if (!customers) return [];
+        const countryCount: Record<string, number> = {};
+        customers.forEach((customer) => {
+            if (customer.country) {
+                const code = customer.country.toUpperCase();
+                countryCount[code] = (countryCount[code] || 0) + 1;
+            }
+        });
+        return Object.entries(countryCount).map(([countryCode, value]) => ({
+            countryCode,
+            value,
+            label: `${value}`,
+        }));
+    }, [customers]);
+
+
 
     return (
-        <Box>
+        <VStack p={{ md: 6 }} gap={8} align="stretch">
+            <Box>
+                {countryData.length > 0 && (
+                    <WorldMap
+                        data={countryData}
+                        height={350}
+                        loading={loadingOrganisation || loadingCustomers}
+                        showLegend={false}
+                    />
+                )}
+            </Box>
             <DataTable
                 data={customers ?? []}
                 columns={columns}
@@ -122,7 +161,7 @@ const Page = () => {
                 loading={loadingOrganisation || loadingCustomers}
                 emptyMessage="No customers found"
             />
-        </Box>
+        </VStack>
     )
 }
 

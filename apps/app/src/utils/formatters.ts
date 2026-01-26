@@ -1,4 +1,8 @@
-export function formatCurrency({ amount, currency, decimals = 2 }: { amount: number, currency?: string, decimals?: number }) {
+export function formatCurrency({ amount, currency, decimals = 2 }: { amount: number | string, currency?: string, decimals?: number }) {
+    if (typeof amount === "string") {
+        amount = parseFloat(amount);
+    }
+    
     if (!isFinite(amount)) return "0";
 
     const abs = Math.abs(amount);

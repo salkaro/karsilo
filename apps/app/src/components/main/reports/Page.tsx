@@ -70,7 +70,9 @@ export default function ReportsPage() {
 
     const hasStripeConnections = stripeConnections.length > 0;
 
-    if (loading) {
+    const isInitialLoad = loading && reportsByConnection === null;
+
+    if (isInitialLoad) {
         return (
             <VStack gap={6} align="stretch">
                 <ReportsSkeleton />
@@ -80,7 +82,7 @@ export default function ReportsPage() {
 
     if (!hasStripeConnections) {
         return (
-            <VStack p={{ base: 4, md: 6 }} gap={6} align="stretch">
+            <VStack p={{ md: 6 }} gap={6} align="stretch">
                 <Box
                     borderRadius="lg"
                     border="1px solid"

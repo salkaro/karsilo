@@ -87,26 +87,32 @@ export function SVGChart({
     const getNiceAxisValues = (min: number, max: number, tickCount: number) => {
         if (max === min) return { niceMin: 0, niceMax: max || 100, tickInterval: (max || 100) / tickCount };
 
-        const range = max - min;
+        // Always start from 0 for revenue charts
+        const actualMin = 0;
+        const range = max - actualMin;
+
+        // Calculate a nice round max that divides evenly by tickCount
         const roughInterval = range / tickCount;
 
-        // Find a nice interval (1, 2, 5, 10, 20, 50, 100, 200, 500, etc.)
+        // Find the magnitude (power of 10)
         const magnitude = Math.pow(10, Math.floor(Math.log10(roughInterval)));
         const residual = roughInterval / magnitude;
 
-        let niceInterval: number;
-        if (residual <= 1) niceInterval = magnitude;
-        else if (residual <= 2) niceInterval = 2 * magnitude;
-        else if (residual <= 5) niceInterval = 5 * magnitude;
-        else niceInterval = 10 * magnitude;
+        // Choose a nice interval multiplier (1, 2, 2.5, 5, 10)
+        let niceMultiplier: number;
+        if (residual <= 1) niceMultiplier = 1;
+        else if (residual <= 2) niceMultiplier = 2;
+        else if (residual <= 2.5) niceMultiplier = 2.5;
+        else if (residual <= 5) niceMultiplier = 5;
+        else niceMultiplier = 10;
 
-        // Calculate nice min and max
-        const niceMin = Math.floor(min / niceInterval) * niceInterval;
+        const niceInterval = niceMultiplier * magnitude;
+
+        // Calculate nice max that's a multiple of niceInterval
         const niceMax = Math.ceil(max / niceInterval) * niceInterval;
 
-        // Always start from 0 for revenue charts
         return {
-            niceMin: Math.min(0, niceMin),
+            niceMin: actualMin,
             niceMax: niceMax,
             tickInterval: niceInterval
         };
@@ -430,7 +436,7 @@ export function SVGChart({
 
                 {/* Grid lines */}
                 {showGrid && (() => {
-                    // Calculate number of ticks based on nice values
+                    // Use the tickInterval from getNiceAxisValues for consistent grid lines
                     const numTicks = tickInterval > 0 ? Math.round((niceMax - niceMin) / tickInterval) : gridLines;
                     return Array.from({ length: numTicks + 1 }).map((_, i) => {
                         const y = chartAreaTop + chartAreaHeight - (i / numTicks) * chartAreaHeight;
@@ -451,9 +457,10 @@ export function SVGChart({
 
                 {/* Y Axis labels (values on the left) */}
                 {showYAxis && (() => {
-                    // Calculate number of ticks based on nice values
+                    // Use the tickInterval from getNiceAxisValues for round values
                     const numTicks = tickInterval > 0 ? Math.round((niceMax - niceMin) / tickInterval) : gridLines;
                     return Array.from({ length: numTicks + 1 }).map((_, i) => {
+                        // Use tickInterval to get nice round values (0, 100, 200, etc.)
                         const value = niceMin + i * tickInterval;
                         // Format as compact currency (e.g., £100, £1K, £10K)
                         const formattedValue = formatCurrency({ amount: value, decimals: 0 })

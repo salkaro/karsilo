@@ -42,6 +42,7 @@ const CustomDialog: React.FC<Props> = ({
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
+                    px={{base: 2}}
                 >
                     <Dialog.Content {...contentProps}>
                         <Dialog.Header>
@@ -60,12 +61,12 @@ const CustomDialog: React.FC<Props> = ({
                         {!hideFooter && (
                             <Dialog.Footer>
                                 <Dialog.ActionTrigger asChild>
-                                    <Button variant="outline" disabled={isLoading}>
+                                    <Button variant="outline" disabled={isLoading} size="sm">
                                         {cancelText}
                                     </Button>
                                 </Dialog.ActionTrigger>
                                 {onConfirm && (
-                                    <Button onClick={onConfirm} disabled={isLoading}>
+                                    <Button onClick={onConfirm} disabled={isLoading} size="sm">
                                         {isLoading && <Spinner size="sm" mr={2} />}
                                         {isLoading ? (loadingText || confirmText) : confirmText}
                                     </Button>

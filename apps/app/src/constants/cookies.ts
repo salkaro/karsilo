@@ -11,3 +11,4 @@ export const organisationCookieKey = "organisation";
 export const subscriptionsCookieKey = "subscriptions";
 export const balanceTransactionsCookieKey = "balanceTransactions";
 export const refundsCookieKey = "refunds";
+export const productsCookieKey = "products";

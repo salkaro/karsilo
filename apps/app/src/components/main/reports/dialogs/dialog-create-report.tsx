@@ -110,11 +110,6 @@ function getDateRange(period: string): { start: number; end: number } {
     }
 }
 
-function formatDateForInput(timestamp: number): string {
-    const date = new Date(timestamp * 1000);
-    return date.toISOString().split("T")[0];
-}
-
 function parseInputDate(dateString: string, isEnd = false): number {
     const date = new Date(dateString + "T00:00:00Z");
     if (isEnd) {

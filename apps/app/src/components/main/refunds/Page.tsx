@@ -99,6 +99,7 @@ const Page = () => {
                     border="1px solid"
                     borderColor="gray.200"
                     textAlign="center"
+                    padding={{ base: 4, lg: 8 }}
                 >
                     <VStack gap={4}>
                         <Text color="gray.500" fontSize="lg">

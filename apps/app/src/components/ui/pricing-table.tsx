@@ -3,7 +3,7 @@
 // Local Imports
 import { useOrganisation } from '@/hooks/useOrganisation';
 import { createCustomerSession } from '@/services/stripe/create';
-import { isProduction } from '@/constants/site';
+import { isProduction } from '@repo/constants';
 
 // External Imports
 import React, { useEffect, useState } from 'react'

@@ -1,5 +1,4 @@
-import { CurrencyCode } from "@/constants/currencies";
-import { memberLimits } from "@/constants/limits";
+import { memberLimits, CurrencyCode } from "@repo/constants";
 
 export type SubscriptionType = keyof typeof memberLimits;
 

@@ -1,4 +1,4 @@
-import { IToken } from "@/models/token";
+import { IToken } from "@repo/models";
 import { retrieveTokens } from "@/services/firebase/retrieve";
 import { tokensCookieKey } from "@/constants/cookies";
 import { getCookie, setCookie } from "@/utils/cookie-handlers";

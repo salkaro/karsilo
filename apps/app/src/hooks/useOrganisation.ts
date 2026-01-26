@@ -1,5 +1,5 @@
 // Local Imports
-import { IOrganisation } from "@/models/organisation";
+import { IOrganisation } from "@repo/models";
 import { retrieveOrganisation } from "@/services/firebase/retrieve";
 import { getCookie, setCookie } from "@/utils/cookie-handlers";
 import { organisationCookieKey } from "@/constants/cookies";

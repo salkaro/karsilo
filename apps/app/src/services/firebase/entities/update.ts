@@ -1,9 +1,9 @@
 "use server";
 
 // Local Imports
-import { IEntityConnections } from "@/models/entity";
-import { firestoreAdmin } from "@/lib/firebase/config-admin";
-import { getEntitiesPath } from "@/constants/collections";
+import { firestoreAdmin } from "@repo/firebase";
+import { getEntitiesPath } from "@repo/constants";
+import { IEntityConnections } from "@repo/models";
 
 export async function updateEntity({
     organisationId,

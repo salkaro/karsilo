@@ -25,7 +25,12 @@ export function EmotionCacheProvider({ children }: { children: React.ReactNode }
             if (typeof style === "string") {
                 names.push(name)
                 styles += style
+                delete cache.inserted[name]
             }
+        }
+
+        if (styles === "") {
+            return null
         }
 
         return (

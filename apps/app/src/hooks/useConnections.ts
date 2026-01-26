@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 // Local Imports
-import { IConnection } from "@/models/connection";
+import { IConnection } from "@repo/models";
 import { connectionsCookieKey } from "@/constants/cookies";
 import { getCookie, setCookie, removeCookie } from "@/utils/cookie-handlers";
 

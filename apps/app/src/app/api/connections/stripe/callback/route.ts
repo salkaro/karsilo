@@ -3,11 +3,11 @@ import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 
 // Local Imports
+import { root, isProduction } from "@repo/constants";
 import { retrieveUserAdmin } from "@/services/firebase/admin-retrieve";
-import { IStripeOAuthToken } from "@/models/connection";
+import { IStripeOAuthToken } from "@repo/models";
 import { createConnection } from "@/services/connections/create";
 import { updateEntity } from "@/services/firebase/entities/update";
-import { root, isProduction } from "@/constants/site";
 
 export async function GET(request: NextRequest) {
     try {

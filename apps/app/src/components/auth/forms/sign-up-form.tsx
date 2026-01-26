@@ -24,7 +24,7 @@ import {
 } from "@repo/ui"
 
 // Local Imports
-import { usersCol } from "@/constants/collections"
+import { usersCol } from "@repo/constants"
 import PreparingForm from "./preparing-form"
 import { auth, firestore } from "@/lib/firebase/config"
 import { validateEmail, validateEmailInput, validatePasswordInput } from "@/utils/input-validation"

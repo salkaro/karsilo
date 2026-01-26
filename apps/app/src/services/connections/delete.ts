@@ -1,10 +1,9 @@
 "use server";
 
 // Local Imports
-import { ConnectionType } from "@/models/connection";
-import { firestoreAdmin, admin } from "@/lib/firebase/config-admin";
-import { getConnectionsPath, getEntitiesPath } from "@/constants/collections";
-import { IConnection } from "@/models/connection";
+import { firestoreAdmin, admin } from "@repo/firebase";
+import { ConnectionType, IConnection } from "@repo/models";
+import { getConnectionsPath, getEntitiesPath } from "@repo/constants";
 
 export async function deleteConnection({
     organisationId,

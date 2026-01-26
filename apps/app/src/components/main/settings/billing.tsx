@@ -2,15 +2,14 @@
 
 // External Imports
 import { useSession } from "next-auth/react"
-import { LuZap, LuRocket, LuStar, LuCrown, LuUsers, LuCreditCard } from "react-icons/lu"
+import { LuZap, LuRocket, LuStar, LuCrown, LuUsers, LuCreditCard, LuBuilding2 } from "react-icons/lu"
 import { toast } from "sonner"
 
 // Local Imports
-import { memberLimits } from "@/constants/limits"
-import { levelThreeAccess } from "@/constants/access"
+import { memberLimits, entityLimits, levelThreeAccess } from "@repo/constants"
 import { useOrganisation } from "@/hooks/useOrganisation"
 import { createBillingPortalUrl } from "@/services/stripe/create"
-import { IOrganisation, SubscriptionType } from "@/models/organisation"
+import { IOrganisation, SubscriptionType } from "@repo/models"
 import {
     Box,
     Button,
@@ -25,10 +24,12 @@ import {
 import StripePricingTable from "@/components/ui/pricing-table"
 
 const Billing = () => {
-    const { organisation } = useOrganisation()
-    const { data: session } = useSession()
+    const { organisation } = useOrganisation();
+    const { data: session } = useSession();
 
     const hasLevelThreeAccess = levelThreeAccess.includes(session?.user.organisation?.role as string)
+
+    const isOnFreePlan = organisation?.subscription === "free";
 
     async function handleBillingPortal() {
         try {
@@ -57,7 +58,12 @@ const Billing = () => {
                             Manage
                         </Button>
                     </HStack>
-                    <StripePricingTable />
+
+                    {isOnFreePlan && (
+                        <Box marginBottom={20}>
+                            <StripePricingTable />
+                        </Box>
+                    )}
                 </>
             )}
             <CurrentSubscription organisation={organisation as IOrganisation} hasLevelThreeAccess={hasLevelThreeAccess} />
@@ -71,10 +77,10 @@ const getSubscriptionIcon = (type: SubscriptionType) => {
     switch (type) {
         case "free":
             return <LuZap size={size} />
+        case "starter":
+            return <LuStar size={size} />
         case "growth":
             return <LuRocket size={size} />
-        case "essential":
-            return <LuStar size={size} />
         case "pro":
             return <LuCrown size={size} />
         default:
@@ -86,10 +92,10 @@ const getSubscriptionColor = (type: SubscriptionType) => {
     switch (type) {
         case "free":
             return "gray.500"
+        case "starter":
+            return "purple.500"
         case "growth":
             return "blue.500"
-        case "essential":
-            return "purple.500"
         case "pro":
             return "orange.500"
         default:
@@ -100,7 +106,9 @@ const getSubscriptionColor = (type: SubscriptionType) => {
 const CurrentSubscription = ({ organisation, hasLevelThreeAccess }: { organisation: IOrganisation, hasLevelThreeAccess: boolean }) => {
     const subscriptionType = organisation?.subscription || "free"
     const memberLimit = memberLimits[subscriptionType]
+    const entityLimit = entityLimits[subscriptionType]
     const currentMembers = organisation?.members || 0
+    const currentEntities = organisation?.entities || 0
     const iconColor = getSubscriptionColor(subscriptionType)
 
     return (
@@ -151,7 +159,7 @@ const CurrentSubscription = ({ organisation, hasLevelThreeAccess }: { organisati
                                 <Box p={2} borderRadius="md" bg="blue.500/10">
                                     <LuUsers size={20} color="var(--chakra-colors-blue-500)" />
                                 </Box>
-                                <Box>
+                                <Box flex={1}>
                                     <Text fontSize="sm" color="fg.muted">Team Members</Text>
                                     <Text fontSize="xl" fontWeight="semibold">
                                         {currentMembers} / {memberLimit === -1 ? "Unlimited" : memberLimit}
@@ -162,6 +170,38 @@ const CurrentSubscription = ({ organisation, hasLevelThreeAccess }: { organisati
                                             value={Math.min((currentMembers / memberLimit) * 100, 100)}
                                             size="sm"
                                             colorPalette="blue"
+                                        >
+                                            <Progress.Track>
+                                                <Progress.Range />
+                                            </Progress.Track>
+                                        </Progress.Root>
+                                    )}
+                                </Box>
+                            </HStack>
+
+                            {/* Entities */}
+                            <HStack
+                                align="flex-start"
+                                gap={3}
+                                p={4}
+                                border="1px solid"
+                                borderColor="border"
+                                borderRadius="lg"
+                            >
+                                <Box p={2} borderRadius="md" bg="green.500/10">
+                                    <LuBuilding2 size={20} color="var(--chakra-colors-green-500)" />
+                                </Box>
+                                <Box flex={1}>
+                                    <Text fontSize="sm" color="fg.muted">Entities</Text>
+                                    <Text fontSize="xl" fontWeight="semibold">
+                                        {currentEntities} / {entityLimit === -1 ? "Unlimited" : entityLimit}
+                                    </Text>
+                                    {entityLimit !== -1 && (
+                                        <Progress.Root
+                                            mt={2}
+                                            value={Math.min((currentEntities / entityLimit) * 100, 100)}
+                                            size="sm"
+                                            colorPalette="green"
                                         >
                                             <Progress.Track>
                                                 <Progress.Range />

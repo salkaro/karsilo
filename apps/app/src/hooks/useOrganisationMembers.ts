@@ -1,5 +1,5 @@
 // Local Imports
-import { IUser } from "@/models/user";
+import { IUser } from "@repo/models";
 import { membersCookieKey } from "@/constants/cookies";
 import { withTokenRefresh } from "@/utils/token-refresh";
 import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";

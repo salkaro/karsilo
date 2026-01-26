@@ -1,16 +1,16 @@
 "use client"
 
 import { useState } from "react";
-import { levelThreeAccess } from "@/constants/access";
+import { levelThreeAccess, memberLimits } from "@repo/constants";
 import { useOrganisation } from "@/hooks/useOrganisation";
 import { Button, HStack, Separator, Skeleton, VStack } from "@repo/ui";
+import { LimitReached } from "@/components/ui/access-gate";
 import { useSession } from "next-auth/react";
 import { LuPlus, LuTicket } from "react-icons/lu";
 import DialogActiveInviteCodes from "./dialogs/dialog-active-invite-codes";
 import DialogAddMember from "./dialogs/dialog-add-member";
-import { IOrganisation } from "@/models/organisation";
+import { IOrganisation } from "@repo/models";
 import EmployeeTable from "./employee-table";
-import { memberLimits } from "@/constants/limits";
 
 const Page = () => {
     const { data: session } = useSession();
@@ -67,6 +67,16 @@ const Page = () => {
                 )}
             </HStack>
             <Separator borderWidth="1px" />
+
+            {/* Show limit warning if member limit reached */}
+            {maxMemberCountHit && hasLevelThreeAccess && (
+                <LimitReached
+                    limitType="Member"
+                    currentCount={organisation?.members ?? 0}
+                    maxCount={memberLimit}
+                />
+            )}
+
             <EmployeeTable organisation={organisation as IOrganisation} />
 
             {/* Dialogs */}

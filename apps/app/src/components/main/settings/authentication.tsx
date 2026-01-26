@@ -17,12 +17,12 @@ import {
 import { toast } from "sonner"
 
 // Local Imports
-import { OrgRoleType } from "@/constants/access"
+import { OrgRoleType, apiTokenAccessLevels, apiTokenAccessLevelsName, apiAccess } from "@repo/constants"
 import { useTokens } from "@/hooks/useTokens"
 import { updateAPIKey } from "@/services/firebase/update"
 import { generateApiKey } from "@/utils/generate"
 import { useOrganisation } from "@/hooks/useOrganisation"
-import { apiTokenAccessLevels, apiTokenAccessLevelsName } from "@/constants/access"
+import { FeatureLocked } from "@/components/ui/access-gate"
 import {
     Box,
     Button,
@@ -53,6 +53,8 @@ const Authentication = () => {
     const [showAddDialog, setShowAddDialog] = useState(false)
 
     const userRole = session?.user.organisation?.role as OrgRoleType | undefined
+    const subscription = (organisation?.subscription ?? "free") as keyof typeof apiAccess
+    const hasApiAccess = apiAccess[subscription] ?? false
 
     async function createNewAPIKey({ name, accessLevel }: { name: string; accessLevel: number }): Promise<{ error?: boolean }> {
         try {
@@ -171,6 +173,17 @@ const Authentication = () => {
 
     if (organisation?.id && status !== "loading" && !orgLoading && !tokensLoading && tokensError) {
         return <Text color="red.600">Error loading tokens: {tokensError}</Text>
+    }
+
+    // Check if plan has API access
+    if (!hasApiAccess) {
+        return (
+            <FeatureLocked
+                featureName="API Access"
+                requiredPlan="Growth or Pro"
+                description="API keys and programmatic access are available on Growth and Pro plans. Upgrade to integrate with your systems."
+            />
+        )
     }
 
     return (

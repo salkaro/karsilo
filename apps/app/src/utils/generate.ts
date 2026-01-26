@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
-import { apiTokenAccessLevels } from '@/constants/access';
-import { IToken } from '@/models/token';
+import { apiTokenAccessLevels } from '@repo/constants';
+import { IToken } from '@repo/models';
 const ALPHANUM = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 export function generateInviteCode(length = 10): string {

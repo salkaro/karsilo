@@ -4,8 +4,6 @@ export interface Currency {
     symbol: string;
 }
 
-export type CurrencyCode = typeof currencies[number]["code"];
-
 export const currencies: Currency[] = [
     { code: "USD", name: "US Dollar", symbol: "$" },
     { code: "EUR", name: "Euro", symbol: "€" },
@@ -42,3 +40,5 @@ export const currencies: Currency[] = [
     { code: "MYR", name: "Malaysian Ringgit", symbol: "RM" },
     { code: "RON", name: "Romanian Leu", symbol: "lei" },
 ];
+
+export type CurrencyCode = typeof currencies[number]["code"];

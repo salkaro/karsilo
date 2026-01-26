@@ -8,6 +8,7 @@ interface ICustomer {
 
     status?: CustomerStatus;
     currency?: string;
+    country?: string | null;
 
     deleted?: boolean;
     

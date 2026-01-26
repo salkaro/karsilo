@@ -1,9 +1,9 @@
 "use server";
 
 // Local Imports
-import { IEntity } from "@/models/entity";
-import { firestoreAdmin } from "@/lib/firebase/config-admin";
-import { getEntitiesPath, organisationsCol } from "@/constants/collections";
+import { IEntity, IOrganisation } from "@repo/models";
+import { firestoreAdmin } from "@repo/firebase";
+import { getEntitiesPath, organisationsCol, entityLimits } from "@repo/constants";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function createEntity({
@@ -18,6 +18,22 @@ export async function createEntity({
     logoPrimary?: string;
 }): Promise<{ entity?: IEntity; error?: string }> {
     try {
+        // Fetch organisation to check entity limits
+        const orgRef = firestoreAdmin.collection(organisationsCol).doc(organisationId);
+        const orgSnap = await orgRef.get();
+        if (!orgSnap.exists) {
+            return { error: "Organisation not found" };
+        }
+        const organisation = orgSnap.data() as IOrganisation;
+
+        // Check entity limit
+        const subscriptionTier = organisation?.subscription ?? "free";
+        const entityLimit = entityLimits[subscriptionTier as keyof typeof entityLimits];
+        const currentEntities = organisation?.entities ?? 0;
+        if (entityLimit >= 0 && currentEntities >= entityLimit) {
+            return { error: `Entity limit of ${entityLimit} reached. Upgrade your plan to create more entities.` };
+        }
+
         // Use subcollection path: organisations/{organisationId}/entities
         const entitiesPath = getEntitiesPath(organisationId);
         const entityRef = firestoreAdmin.collection(entitiesPath).doc();
@@ -40,7 +56,6 @@ export async function createEntity({
         await entityRef.set(entity);
 
         // Increment entities count on organisation
-        const orgRef = firestoreAdmin.collection(organisationsCol).doc(organisationId);
         await orgRef.update({
             entities: FieldValue.increment(1),
         });

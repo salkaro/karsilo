@@ -1,4 +1,4 @@
-import { isProduction } from "./site";
+import { isProduction } from "@repo/constants";
 
 export const starterPriceId = isProduction ? "1" : "";
 export const essentialPriceId = isProduction ? "2" : "";

@@ -1,8 +1,8 @@
 "use server";
 
 // Local Imports
-import { firestoreAdmin } from "@/lib/firebase/config-admin";
-import { getEntitiesPath, organisationsCol } from "@/constants/collections";
+import { firestoreAdmin } from "@repo/firebase";
+import { getEntitiesPath, getConnectionsPath, organisationsCol } from "@repo/constants";
 import { FieldValue } from "firebase-admin/firestore";
 
 export async function deleteEntity({
@@ -19,11 +19,21 @@ export async function deleteEntity({
 
         await entityRef.delete();
 
+        // Delete any connections linked to this entity
+        const connectionsPath = getConnectionsPath(organisationId);
+        const connectionsSnap = await firestoreAdmin
+            .collection(connectionsPath)
+            .where("entityId", "==", entityId)
+            .get();
+
+        const batch = firestoreAdmin.batch();
+        connectionsSnap.docs.forEach((doc) => batch.delete(doc.ref));
+
         // Decrement entities count on organisation
         const orgRef = firestoreAdmin.collection(organisationsCol).doc(organisationId);
-        await orgRef.update({
-            entities: FieldValue.increment(-1),
-        });
+        batch.update(orgRef, { entities: FieldValue.increment(-1) });
+
+        await batch.commit();
 
         return { success: true };
     } catch (error) {

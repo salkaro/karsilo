@@ -21,6 +21,7 @@ const AlertContinue: React.FC<Props> = ({ trigger, onConfirm, title, description
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
+                    px={{ base: 2, md: 0 }}
                 >
                     <Dialog.Content>
                         <Dialog.Header>
@@ -31,10 +32,10 @@ const AlertContinue: React.FC<Props> = ({ trigger, onConfirm, title, description
                         </Dialog.Body>
                         <Dialog.Footer>
                             <Dialog.ActionTrigger asChild>
-                                <Button variant="outline">Cancel</Button>
+                                <Button variant="outline" size="sm">Cancel</Button>
                             </Dialog.ActionTrigger>
                             <Dialog.ActionTrigger asChild>
-                                <Button colorPalette="red" onClick={onConfirm}>
+                                <Button colorPalette="red" onClick={onConfirm} size="sm">
                                     Continue
                                 </Button>
                             </Dialog.ActionTrigger>

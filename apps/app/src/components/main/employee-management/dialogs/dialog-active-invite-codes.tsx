@@ -19,7 +19,7 @@ import { deleteInviteCodeAdmin } from '@/services/firebase/admin-delete'
 import { withTokenRefresh } from '@/utils/token-refresh'
 import { extractRoleBadgeVariant } from '@/utils/extract'
 import { formatDateByTimeAgo } from '@/utils/formatters'
-import { root } from '@/constants/site'
+import { root } from '@repo/constants'
 import CustomDialog from '@/components/ui/dialog'
 
 interface Props {

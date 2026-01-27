@@ -1,11 +1,10 @@
 "use server";
 
 // Local Imports
-import { IUser } from "@/models/user";
-import { IOrganisation } from "@/models/organisation";
-import { firestoreAdmin } from "@/lib/firebase/config-admin";
+import { firestoreAdmin } from "@repo/firebase";
+import { IUser, IOrganisation } from "@repo/models";
 import { createStripeCustomer } from "../stripe/create";
-import { organisationsCol, usersCol } from "@/constants/collections";
+import { organisationsCol, usersCol } from "@repo/constants";
 
 
 export async function createUser({ uid, email }: { uid: string, email: string }): Promise<IUser | void> {

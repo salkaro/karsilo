@@ -1,6 +1,4 @@
-import { ICharge } from "@/models/charge";
-import { ICustomer } from "@/models/customer";
-import { IEntity } from "@/models/entity";
+import { ICharge, ICustomer, IEntity } from "@repo/models";
 
 export function extractInitials({ name, email }: { name?: string | null, email?: string | null }) {
     // If name provided

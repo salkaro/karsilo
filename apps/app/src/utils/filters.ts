@@ -1,6 +1,4 @@
-import { ICharge } from "@/models/charge";
-import { IUser } from "@/models/user";
-import { ICustomer } from "@/models/customer";
+import { ICharge, IUser, ICustomer } from "@repo/models";
 
 export function chargeSearchFilter(charges: ICharge[], query?: string) {
     if (!query) return charges

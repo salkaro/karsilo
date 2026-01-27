@@ -19,7 +19,7 @@ import {
 import { createBillingPortalUrl } from "@/services/stripe/create"
 import { signOut } from "@/services/sign-out"
 import { useOrganisation } from "@/hooks/useOrganisation"
-import { levelThreeAccess } from "@/constants/access"
+import { levelThreeAccess } from "@repo/constants"
 
 export function SidebarUser() {
     const router = useRouter()
@@ -54,19 +54,20 @@ export function SidebarUser() {
                 <Button
                     variant="ghost"
                     w="full"
-                    h="auto"
+                    h="16"
                     p={3}
                     justifyContent="flex-start"
+                    alignItems="center"
                     _hover={{ bg: "gray.100" }}
                 >
-                    <HStack gap={3} w="full">
+                    <HStack gap={3} w="full" align="center">
                         <Avatar.Root size="sm">
                             <Avatar.Image src={session?.user.brand?.imageUrl as string} />
                             <Avatar.Fallback>
                                 {`${session?.user.firstname?.slice(0, 1)}${session?.user.lastname?.slice(0, 1)}`}
                             </Avatar.Fallback>
                         </Avatar.Root>
-                        <VStack align="start" gap={0} flex={1} overflow="hidden">
+                        <VStack align="start" gap={0} flex={1} overflow="hidden" maxWidth="100%">
                             <Text fontSize="sm" fontWeight="medium" truncate>
                                 {session?.user.firstname} {session?.user.lastname}
                             </Text>
@@ -80,7 +81,7 @@ export function SidebarUser() {
             </Menu.Trigger>
             <Portal>
                 <Menu.Positioner>
-                    <Menu.Content minW="224px">
+                    <Menu.Content minW="224px" ml={{ base: 4, md: 0 }}>
                         {/* User Info Header */}
                         <Box p={2}>
                             <HStack gap={2}>
@@ -91,10 +92,10 @@ export function SidebarUser() {
                                     </Avatar.Fallback>
                                 </Avatar.Root>
                                 <VStack align="start" gap={0}>
-                                    <Text fontSize="sm" fontWeight="medium">
+                                    <Text fontSize="sm" fontWeight="medium" truncate>
                                         {session?.user.firstname ?? "Name"} {session?.user.lastname ?? ""}
                                     </Text>
-                                    <Text fontSize="xs" color="fg.muted">
+                                    <Text fontSize="xs" color="fg.muted" truncate>
                                         {session?.user.email}
                                     </Text>
                                 </VStack>

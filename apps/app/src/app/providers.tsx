@@ -126,10 +126,12 @@ const system = createSystem(defaultConfig, config)
 
 export function Providers({ children }: { children: React.ReactNode }) {
     return (
+        <EmotionCacheProvider>
             <SessionProvider>
                 <ChakraProvider value={system}>
                     {children}
                 </ChakraProvider>
             </SessionProvider>
+        </EmotionCacheProvider>
     );
 }

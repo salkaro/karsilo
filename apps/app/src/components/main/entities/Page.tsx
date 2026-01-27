@@ -3,15 +3,15 @@
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { entityLimits } from '@/constants/limits';
+import { entityLimits, levelTwoAccess } from '@repo/constants';
 import { useEntities } from '@/hooks/useEntities';
 import { useOrganisation } from '@/hooks/useOrganisation';
-import { levelTwoAccess } from '@/constants/access';
-import AddEntityDialog from './add-entity-dialog';
+import AddEntityDialog from './dialogs/add-entity-dialog';
 import EntityTable from './entity-table';
 import { Box, VStack, Separator, Skeleton, Text, HStack, Badge } from '@repo/ui';
 import { useConnections } from '@/hooks/useConnections';
-import { IConnection } from '@/models/connection';
+import { IConnection } from '@repo/models';
+import { Building2 } from 'lucide-react';
 
 const Page = () => {
     const { data: session } = useSession();
@@ -82,13 +82,29 @@ const Page = () => {
                         organisation={organisation!}
                         refetchEntitiesCallback={handleEntityCreated}
                     />
-                    <Badge
-                        colorPalette="purple"
-                        variant="subtle"
-                    
+                    <HStack
+                        pr={4}
+                        pl={2}
+                        py={2}
+                        borderRadius="md"
+                        border="1px solid"
+                        borderColor="gray.200"
+                        gap={3}
+                        justify="space-between"
                     >
-                        {limit === -1 ? 'Unlimited' : `${entities?.length ?? 0}/${limit}`}
-                    </Badge>
+                        <Box color="purple.500" bg="purple.500/10" padding={2} rounded="md">
+                           <Building2 />
+                        </Box>
+                        <VStack gap={0} align="end">
+                            <Text fontSize="xs" color="gray.500">
+                                Entities
+                            </Text>
+                            <Text fontSize="md" fontWeight="semibold">
+                                {limit === -1 ? 'Unlimited' : `${entities?.length ?? 0} / ${limit}`}
+
+                            </Text>
+                        </VStack>
+                    </HStack>
                 </HStack>
             )}
 

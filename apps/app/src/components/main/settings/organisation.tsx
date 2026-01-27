@@ -8,11 +8,10 @@ import { toast } from "sonner"
 import Image from "next/image"
 
 // Local Imports
-import { IOrganisation } from "@/models/organisation"
+import { IOrganisation } from "@repo/models"
 import { useOrganisation } from "@/hooks/useOrganisation"
 import { updateOrganisation } from "@/services/firebase/update"
-import { levelTwoAccess, levelThreeAccess } from "@/constants/access"
-import { currencies } from "@/constants/currencies"
+import { levelTwoAccess, levelThreeAccess, currencies } from "@repo/constants"
 import {
     Box,
     Button,

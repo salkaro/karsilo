@@ -2,21 +2,34 @@
 
 import { useMemo } from "react";
 import { HStack, Text, Badge, Avatar } from "@repo/ui";
-import { LuTrendingUp, LuFileText } from "react-icons/lu";
-import { ICharge } from "@/models/charge";
-import { IEntity } from "@/models/entity";
-import { DataTable, Column, SummaryCard } from "@/components/ui/table";
+import { ICharge, IEntity } from "@repo/models";
+import { DataTable, Column, SummaryCard, SummaryCardDropdownItem } from "@/components/ui/table";
 import { formatCurrency, formatDateByTimeAgo } from "@/utils/formatters";
+import { ReceiptText, TrendingUp } from "lucide-react";
 
 interface PaymentsTableProps {
     charges: ICharge[];
     entities: IEntity[] | null;
-    currency?: string;
+    currency: string;
     onRefresh?: () => void;
     loading?: boolean;
 }
 
-export const PaymentsTable = ({ charges, entities, currency = "GBP", onRefresh, loading }: PaymentsTableProps) => {
+export const PaymentsTable = ({
+    charges,
+    entities,
+    currency,
+    onRefresh,
+    loading,
+}: PaymentsTableProps) => {
+    const sortedCharges = useMemo(() => {
+        return [...charges].sort(
+            (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime()
+        );
+    }, [charges]);
+
     // Get status badge color
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -48,21 +61,63 @@ export const PaymentsTable = ({ charges, entities, currency = "GBP", onRefresh, 
     // Calculate totals
     const summaryCards: SummaryCard[] = useMemo(() => {
         const successfulCharges = charges.filter((c) => c.status === "successful");
-        const revenue = successfulCharges.reduce((sum, c) => sum + c.amount, 0);
+        const normalizedCurrency = currency.toUpperCase();
+
+        // Group revenue by currency
+        const revenueByCurrency: Record<string, number> = {};
+        successfulCharges.forEach((c) => {
+            const curr = c.currency?.toUpperCase() || normalizedCurrency;
+            revenueByCurrency[curr] = (revenueByCurrency[curr] || 0) + c.amount;
+        });
+
+        // Group transactions by currency
+        const transactionsByCurrency: Record<string, number> = {};
+        charges.forEach((c) => {
+            const curr = c.currency?.toUpperCase() || normalizedCurrency;
+            transactionsByCurrency[curr] = (transactionsByCurrency[curr] || 0) + 1;
+        });
+
+        const revenueCurrencies = Object.keys(revenueByCurrency);
+        const transactionCurrencies = Object.keys(transactionsByCurrency);
+
+        // Default displayed value uses the passed-in currency, fallback to first available
+        const displayedRevenueAmount = revenueByCurrency[normalizedCurrency] ?? revenueByCurrency[revenueCurrencies[0]] ?? 0;
+        const displayedRevenueCurrency = revenueByCurrency[normalizedCurrency] !== undefined
+            ? normalizedCurrency
+            : revenueCurrencies[0] || normalizedCurrency;
+
+        // Build dropdown items for multiple currencies (revenue)
+        const revenueDropdownItems: SummaryCardDropdownItem[] = revenueCurrencies.length > 1
+            ? revenueCurrencies.map((curr) => ({
+                label: curr,
+                value: formatCurrency({ amount: revenueByCurrency[curr], currency: curr }),
+            }))
+            : [];
+
+        // Build dropdown items for multiple currencies (transactions)
+        const transactionsDropdownItems: SummaryCardDropdownItem[] = transactionCurrencies.length > 1
+            ? transactionCurrencies.map((curr) => ({
+                label: curr,
+                value: transactionsByCurrency[curr],
+            }))
+            : [];
+
         return [
             {
-                icon: <LuTrendingUp size={20} />,
+                icon: <TrendingUp size={20} />,
                 iconColor: "green.500",
                 iconBg: "green.500/10",
                 label: "Revenue",
-                value: formatCurrency(revenue, currency),
+                value: formatCurrency({ amount: displayedRevenueAmount, currency: displayedRevenueCurrency }),
+                dropdownItems: revenueDropdownItems,
             },
             {
-                icon: <LuFileText size={20} />,
+                icon: <ReceiptText size={20} />,
                 iconColor: "blue.500",
                 iconBg: "blue.500/10",
                 label: "Transactions",
                 value: charges.length,
+                dropdownItems: transactionsDropdownItems,
             },
         ];
     }, [charges, currency]);
@@ -132,7 +187,7 @@ export const PaymentsTable = ({ charges, entities, currency = "GBP", onRefresh, 
             align: "right",
             render: (charge: ICharge) => (
                 <Text fontSize="sm" fontWeight="medium">
-                    {formatCurrency(charge.amount, charge.currency)}
+                    {formatCurrency({ amount: charge.amount, currency: charge.currency })}
                 </Text>
             ),
         },
@@ -147,13 +202,16 @@ export const PaymentsTable = ({ charges, entities, currency = "GBP", onRefresh, 
             entityName.includes(q) ||
             charge.amount.toString().includes(q) ||
             charge.email?.toLowerCase().includes(q) ||
-            charge.description?.toLowerCase().includes(q)
+            charge.description?.toLowerCase().includes(q) ||
+            charge.type?.toLowerCase().includes(q) ||
+            new Date(charge.createdAt).toDateString().toLowerCase().includes(q) ||
+            charge.status?.toLowerCase().includes(q)
         );
     };
 
     return (
         <DataTable
-            data={charges}
+            data={sortedCharges}
             columns={columns}
             getRowKey={(charge: ICharge) => charge.id}
             searchPlaceholder="Search by customer, amount, or description..."

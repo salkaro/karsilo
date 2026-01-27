@@ -1,12 +1,10 @@
 "use client"
 
 import { Column, DataTable, SummaryCard } from "@/components/ui/table";
-import { levelThreeAccess, OrgRoleType } from "@/constants/access";
-import { memberLimits } from "@/constants/limits";
+import { levelThreeAccess, OrgRoleType, memberLimits } from "@repo/constants";
 import { useOrganisationInvites } from "@/hooks/useOrganisationInvites";
 import { useOrganisationMembers } from "@/hooks/useOrganisationMembers";
-import { IOrganisation } from "@/models/organisation";
-import { IUser } from "@/models/user";
+import { IOrganisation, IUser } from "@repo/models";
 import { updateOrganisationMember } from "@/services/firebase/update";
 import { formatDateByTimeAgo } from "@/utils/formatters";
 import { Avatar, Badge, Box, Button, HStack, Menu, Portal, Text } from "@repo/ui";

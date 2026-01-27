@@ -1,12 +1,11 @@
 "use server"
 
 // Local Imports
-import { getInviteCodesPath, organisationsCol, usersCol } from "@/constants/collections";
-import { firestoreAdmin } from "@/lib/firebase/config-admin";
+import { IUser } from "@repo/models";
+import { firestoreAdmin } from "@repo/firebase";
 import { retrieveUIDAdmin } from "./admin-retrieve";
 import { incrementOrganisationMembersCount } from "./admin-increment";
-import { IUser } from "@/models/user";
-import { levelTwoAccess } from "@/constants/access";
+import { getInviteCodesPath, organisationsCol, usersCol, levelTwoAccess } from "@repo/constants";
 
 // External Imports
 import { firestore } from "firebase-admin";

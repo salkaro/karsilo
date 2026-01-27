@@ -1,5 +1,5 @@
 // Local Imports
-import { IMemberInvite } from "@/models/invite";
+import { IMemberInvite } from "@repo/models";
 import { invitesCookieKey } from "@/constants/cookies";
 import { withTokenRefresh } from "@/utils/token-refresh";
 import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";

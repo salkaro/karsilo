@@ -8,7 +8,7 @@ import { retrieveStripeInvoices } from "@/services/stripe/retrieve";
 import { invoicesCookieKey } from "@/constants/cookies";
 import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";
 import { retrieveAllConnections } from "@/services/connections/retrieve";
-import { ICharge } from "@/models/charge";
+import { ICharge } from "@repo/models";
 
 interface UseInvoicesReturn {
     invoicesByConnection: Record<string, ICharge[]> | null;

@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 
 // Local Imports
-import { IEntity } from "@/models/entity";
+import { IEntity } from "@repo/models";
 import { retrieveEntities } from "@/services/firebase/entities/retrieve";
 import { entitiesCookieKey } from "@/constants/cookies";
 import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";

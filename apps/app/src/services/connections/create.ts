@@ -1,10 +1,10 @@
 "use server";
 
 // Local Imports
-import { IConnection, ConnectionType } from "@/models/connection";
-import { firestoreAdmin } from "@/lib/firebase/config-admin";
-import { getConnectionsPath } from "@/constants/collections";
 import { encrypt } from "@/lib/encryption";
+import { firestoreAdmin } from "@repo/firebase";
+import { getConnectionsPath } from "@repo/constants";
+import { IConnection, ConnectionType } from "@repo/models";
 
 export async function createConnection({
     organisationId,

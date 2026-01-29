@@ -117,8 +117,8 @@ export default function RootLayout({
                         />
                     </>
                 )}
+                <AnalyticsPageview />
                 <Providers>
-                    <AnalyticsPageview />
                     <div className="flex flex-col min-h-screen overflow-x-hidden">
                         <Navbar />
                         <main className="flex-1 w-full pt-16">{children}</main>

@@ -6,7 +6,9 @@ import { createStripeReport, ReportType, PlainReportRun } from "@/services/strip
 import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";
 import { retrieveAllConnections } from "@/services/connections/retrieve";
 import { retrieveStripeReports } from "@/services/stripe/retrieve";
-import { reportsCookieKey } from "@/constants/cookies";
+import { generateConsolidatedReport, saveConsolidatedReport, retrieveConsolidatedReports } from "@/services/reports/consolidated-report";
+import { reportsCookieKey, consolidatedReportsCookieKey } from "@/constants/cookies";
+import { IConsolidateReport } from "@repo/models";
 
 export interface IReport {
     id: string;
@@ -15,10 +17,12 @@ export interface IReport {
     createdAt: string;
     resultUrl?: string;
     error?: string;
+    reportSource?: "stripe" | "consolidated";
 }
 
 interface UseReportsReturn {
     reportsByConnection: Record<string, IReport[]> | null;
+    consolidatedReports: IConsolidateReport[] | null;
     loading: boolean;
     loadingMore: boolean;
     creating: boolean;
@@ -28,6 +32,10 @@ interface UseReportsReturn {
     createReport: (params: {
         connectionId: string;
         reportType: ReportType;
+        intervalStart: number;
+        intervalEnd: number;
+    }) => Promise<{ success: boolean; error?: string }>;
+    createConsolidatedReport: (params: {
         intervalStart: number;
         intervalEnd: number;
     }) => Promise<{ success: boolean; error?: string }>;
@@ -41,6 +49,7 @@ interface UseReportsParams {
 export function useReports(params: UseReportsParams | string | null): UseReportsReturn {
     const organisationId = typeof params === 'string' || params === null ? params : params.organisationId;
     const [reportsByConnection, setReportsByConnection] = useState<Record<string, IReport[]> | null>(null);
+    const [consolidatedReports, setConsolidatedReports] = useState<IConsolidateReport[] | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [loadingMore, setLoadingMore] = useState<boolean>(false);
     const [creating, setCreating] = useState<boolean>(false);
@@ -55,12 +64,14 @@ export function useReports(params: UseReportsParams | string | null): UseReports
         createdAt: new Date(report.created * 1000).toISOString(),
         resultUrl: report.result?.url || undefined,
         error: report.error || undefined,
+        reportSource: "stripe",
     });
 
     const fetchReports = useCallback(
         async ({ reload = false } = {}) => {
             if (!organisationId) {
                 setReportsByConnection(null);
+                setConsolidatedReports(null);
                 setError("No organisation ID provided");
                 return;
             }
@@ -70,11 +81,16 @@ export function useReports(params: UseReportsParams | string | null): UseReports
 
             try {
                 const storageKey = `${organisationId}_${reportsCookieKey}`;
+                const consolidatedStorageKey = `${organisationId}_${consolidatedReportsCookieKey}`;
 
                 if (!reload) {
                     const cached = getSessionStorage(storageKey);
+                    const consolidatedCached = getSessionStorage(consolidatedStorageKey);
                     if (cached) {
                         setReportsByConnection(JSON.parse(cached));
+                        if (consolidatedCached) {
+                            setConsolidatedReports(JSON.parse(consolidatedCached));
+                        }
                         setLoading(false);
                         return;
                     }
@@ -83,8 +99,14 @@ export function useReports(params: UseReportsParams | string | null): UseReports
                 const connections = await retrieveAllConnections({ organisationId });
                 const stripeConnections = connections.filter(conn => conn.type === 'stripe' && conn.status === 'connected');
 
+                // Fetch consolidated reports from Firebase in parallel
+                const consolidatedPromise = retrieveConsolidatedReports({ organisationId });
+
                 if (stripeConnections.length === 0) {
+                    const { reports: consolidated } = await consolidatedPromise;
                     setReportsByConnection({});
+                    setConsolidatedReports(consolidated || []);
+                    setSessionStorage(consolidatedStorageKey, JSON.stringify(consolidated || []));
                     setLoading(false);
                     return;
                 }
@@ -92,23 +114,30 @@ export function useReports(params: UseReportsParams | string | null): UseReports
                 const reportsDict: Record<string, IReport[]> = {};
                 const hasMoreDict: Record<string, boolean> = {};
 
-                await Promise.all(
-                    stripeConnections.map(async (connection) => {
-                        const { reports: fetched, hasMore: more, error: err } = await retrieveStripeReports({
-                            organisationId,
-                            connectionId: connection.id,
-                        });
+                const [, consolidatedResult] = await Promise.all([
+                    Promise.all(
+                        stripeConnections.map(async (connection) => {
+                            const { reports: fetched, hasMore: more, error: err } = await retrieveStripeReports({
+                                organisationId,
+                                connectionId: connection.id,
+                            });
 
-                        if (!err && fetched) {
-                            hasMoreDict[connection.id] = more;
-                            reportsDict[connection.id] = fetched.map(transformReport);
-                        }
-                    })
-                );
+                            if (!err && fetched) {
+                                hasMoreDict[connection.id] = more;
+                                reportsDict[connection.id] = fetched.map(transformReport);
+                            }
+                        })
+                    ),
+                    consolidatedPromise,
+                ]);
 
                 setReportsByConnection(reportsDict);
                 setHasMore(hasMoreDict);
                 setSessionStorage(storageKey, JSON.stringify(reportsDict));
+
+                const consolidated = consolidatedResult.reports || [];
+                setConsolidatedReports(consolidated);
+                setSessionStorage(consolidatedStorageKey, JSON.stringify(consolidated));
             } catch (err) {
                 setError(err instanceof Error ? err.message : "Failed to fetch reports");
                 setReportsByConnection(null);
@@ -224,6 +253,60 @@ export function useReports(params: UseReportsParams | string | null): UseReports
         }
     }, [organisationId]);
 
+    const createConsolidatedReport = useCallback(async ({
+        intervalStart,
+        intervalEnd,
+    }: {
+        intervalStart: number;
+        intervalEnd: number;
+    }): Promise<{ success: boolean; error?: string }> => {
+        if (!organisationId) {
+            return { success: false, error: "No organisation ID provided" };
+        }
+
+        setCreating(true);
+
+        try {
+            const { report, error: genError } = await generateConsolidatedReport({
+                organisationId,
+                from: intervalStart,
+                to: intervalEnd,
+            });
+
+            if (genError || !report) {
+                return { success: false, error: genError || "Failed to generate consolidated report" };
+            }
+
+            const { success, error: saveError } = await saveConsolidatedReport({
+                organisationId,
+                report,
+            });
+
+            if (!success) {
+                return { success: false, error: saveError || "Failed to save consolidated report" };
+            }
+
+            // Update local state
+            setConsolidatedReports(prev => prev ? [report, ...prev] : [report]);
+
+            // Update cache
+            const consolidatedStorageKey = `${organisationId}_${consolidatedReportsCookieKey}`;
+            setConsolidatedReports(current => {
+                if (current) {
+                    setSessionStorage(consolidatedStorageKey, JSON.stringify(current));
+                }
+                return current;
+            });
+
+            return { success: true };
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Failed to create consolidated report";
+            return { success: false, error: errorMessage };
+        } finally {
+            setCreating(false);
+        }
+    }, [organisationId]);
+
     useEffect(() => {
         fetchReports();
     }, [fetchReports]);
@@ -241,6 +324,7 @@ export function useReports(params: UseReportsParams | string | null): UseReports
 
     return {
         reportsByConnection,
+        consolidatedReports,
         loading,
         loadingMore,
         creating,
@@ -248,6 +332,7 @@ export function useReports(params: UseReportsParams | string | null): UseReports
         refetch,
         loadMore,
         createReport,
+        createConsolidatedReport,
         hasMore
     };
 }

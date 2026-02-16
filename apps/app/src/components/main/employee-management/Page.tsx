@@ -54,13 +54,13 @@ const Page = () => {
         <VStack width="full" align="stretch" spaceY={2} marginY={8}>
             <HStack justify="space-between" w="full">
                 {hasLevelThreeAccess && (
-                    <Button variant="outline" size="sm" onClick={() => setShowInviteCodes(true)}>
+                    <Button size="sm" onClick={() => setShowInviteCodes(true)}>
                         <LuTicket />
                         Active Invite Codes
                     </Button>
                 )}
                 {hasLevelThreeAccess && (
-                    <Button variant="outline" size="sm" onClick={() => setShowAddMember(true)} disabled={maxMemberCountHit}>
+                    <Button size="sm" onClick={() => setShowAddMember(true)} disabled={maxMemberCountHit}>
                         <LuPlus />
                         Add Member
                     </Button>

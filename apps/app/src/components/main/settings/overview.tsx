@@ -139,7 +139,6 @@ const Overview = () => {
                 <Card.Footer pt={2}>
                     <Box w="full" display="flex" justifyContent="flex-end">
                         <Button
-                            colorPalette="purple"
                             size="sm"
                             onClick={handleSave}
                             disabled={loading}

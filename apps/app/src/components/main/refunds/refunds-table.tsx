@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { HStack, Text, Badge, Avatar } from "@repo/ui";
 import { IEntity } from "@repo/models";
-import { DataTable, Column, SummaryCard } from "@/components/ui/table";
+import { DataTable, Column, SummaryCard, SummaryCardDropdownItem } from "@/components/ui/table";
 import { formatCurrency, formatDateByTimeAgo } from "@/utils/formatters";
 import { RotateCcw, CheckCircle, Clock, XCircle, Ban } from "lucide-react";
 import { IRefund } from "@/hooks/useRefunds";
@@ -73,7 +73,46 @@ export const RefundsTable = ({
     const summaryCards: SummaryCard[] = useMemo(() => {
         const succeeded = refunds.filter((r) => r.status === "succeeded");
         const pending = refunds.filter((r) => r.status === "pending");
-        const totalRefunded = succeeded.reduce((sum, r) => sum + r.amount, 0);
+        const normalizedCurrency = currency.toUpperCase();
+
+        // Group refunded amount by currency (only succeeded refunds)
+        const refundedByCurrency: Record<string, number> = {};
+        succeeded.forEach((r) => {
+            const curr = r.currency?.toUpperCase() || normalizedCurrency;
+            refundedByCurrency[curr] = (refundedByCurrency[curr] || 0) + r.amount;
+        });
+
+        // Group total refunds count by currency
+        const refundsByCurrency: Record<string, number> = {};
+        refunds.forEach((r) => {
+            const curr = r.currency?.toUpperCase() || normalizedCurrency;
+            refundsByCurrency[curr] = (refundsByCurrency[curr] || 0) + 1;
+        });
+
+        const refundedCurrencies = Object.keys(refundedByCurrency);
+        const refundCountCurrencies = Object.keys(refundsByCurrency);
+
+        // Default displayed value uses the passed-in currency, fallback to first available
+        const displayedRefundedAmount = refundedByCurrency[normalizedCurrency] ?? refundedByCurrency[refundedCurrencies[0]] ?? 0;
+        const displayedRefundedCurrency = refundedByCurrency[normalizedCurrency] !== undefined
+            ? normalizedCurrency
+            : refundedCurrencies[0] || normalizedCurrency;
+
+        // Build dropdown items for multiple currencies (refunded amount)
+        const refundedDropdownItems: SummaryCardDropdownItem[] = refundedCurrencies.length > 1
+            ? refundedCurrencies.map((curr) => ({
+                label: curr,
+                value: formatCurrency({ amount: refundedByCurrency[curr], currency: curr }),
+            }))
+            : [];
+
+        // Build dropdown items for multiple currencies (refund count)
+        const refundCountDropdownItems: SummaryCardDropdownItem[] = refundCountCurrencies.length > 1
+            ? refundCountCurrencies.map((curr) => ({
+                label: curr,
+                value: refundsByCurrency[curr],
+            }))
+            : [];
 
         return [
             {
@@ -81,7 +120,8 @@ export const RefundsTable = ({
                 iconColor: "orange.500",
                 iconBg: "orange.500/10",
                 label: "Total Refunded",
-                value: formatCurrency({ amount: totalRefunded, currency }),
+                value: formatCurrency({ amount: displayedRefundedAmount, currency: displayedRefundedCurrency }),
+                dropdownItems: refundedDropdownItems,
             },
             {
                 icon: <CheckCircle size={20} />,
@@ -103,6 +143,7 @@ export const RefundsTable = ({
                 iconBg: "blue.500/10",
                 label: "Total Refunds",
                 value: refunds.length,
+                dropdownItems: refundCountDropdownItems,
             },
         ];
     }, [refunds, currency]);

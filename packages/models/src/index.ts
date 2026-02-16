@@ -7,3 +7,4 @@ export * from './jwt-token.js';
 export * from './organisation.js';
 export * from './token.js';
 export * from './user.js';
+export * from './consolidated-report.js';

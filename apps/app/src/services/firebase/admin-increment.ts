@@ -1,7 +1,7 @@
 "use server";
 
 // Local Imports
-import { increment } from "firebase/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 import { firestoreAdmin } from "@repo/firebase";
 import { retrieveUIDAdmin } from "./admin-retrieve";
 import { organisationsCol, usersCol, levelTwoAccess } from "@repo/constants";
@@ -34,7 +34,7 @@ export async function incrementOrganisationMembersCount({ idToken, orgId, negate
         // Step 4: Atomically increment the membersCount field
         const orgRef = firestoreAdmin.collection(organisationsCol).doc(orgId);
         await orgRef.update({
-            members: increment(negate ? -1 : 1),
+            members: FieldValue.increment(negate ? -1 : 1),
         });
 
         return { success: true };

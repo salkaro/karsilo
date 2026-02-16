@@ -84,7 +84,6 @@ const AddEntityDialog: React.FC<Props> = ({ organisation, refetchEntitiesCallbac
     return (
         <>
             <Button
-                colorPalette="purple"
                 size="sm"
                 disabled={!canAddEntity}
                 onClick={() => setOpen(true)}

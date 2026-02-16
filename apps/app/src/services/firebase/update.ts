@@ -14,7 +14,7 @@ import { organisationsCol, tokensSubCol, usersCol, OrgRoleType } from "@repo/con
 import { deleteDoc, deleteField, doc, FieldValue, setDoc, updateDoc } from "firebase/firestore";
 
 
-export async function updateOnboarding({ firstname, lastname, organisation }: { firstname: string, lastname: string, organisation?: string }) {
+export async function updateOnboarding({ firstname, lastname, organisation, currency }: { firstname: string, lastname: string, organisation?: string, currency?: string }) {
     try {
         const user = auth.currentUser;
 
@@ -35,6 +35,7 @@ export async function updateOnboarding({ firstname, lastname, organisation }: { 
                 name: organisation,
                 ownerId: user.uid,
                 email: user.email,
+                currency,
             })
 
             if (error || !org) throw error

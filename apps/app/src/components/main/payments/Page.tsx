@@ -25,6 +25,7 @@ import {
 import { useEntities } from "@/hooks/useEntities";
 
 type FilterTab = "all" | "week" | "month" | "year";
+type ChartMode = "revenue" | "payments" | "volume" | "earnings";
 
 const FILTER_TABS: { value: FilterTab; label: string }[] = [
     { value: "all", label: "All Time" },
@@ -39,6 +40,7 @@ export default function RevenuePage() {
     const { connections } = useConnections(organisation?.id ?? null);
 
     const [activeFilter, setActiveFilter] = useState<FilterTab>("month");
+    const [chartMode, setChartMode] = useState<ChartMode>("revenue");
     const [selectedCurrency, setSelectedCurrency] = useState<string>("");
     const [selectedEntityId, setSelectedEntityId] = useState<string>("");
 
@@ -127,6 +129,15 @@ export default function RevenuePage() {
         ],
     }), [availableEntities]);
 
+    const chartModeCollection = useMemo(() => createListCollection({
+        items: [
+            { label: "Revenue", value: "revenue" },
+            { label: "Payments", value: "payments" },
+            { label: "Volume", value: "volume" },
+            { label: "Earnings", value: "earnings" },
+        ],
+    }), []);
+
 
     return (
         <VStack p={{ md: 6 }} gap={8} align="stretch">
@@ -157,6 +168,29 @@ export default function RevenuePage() {
                     </Tabs.Root>
 
                     <HStack gap={2}>
+                        <Select.Root
+                            collection={chartModeCollection}
+                            size="sm"
+                            width="140px"
+                            value={[chartMode]}
+                            onValueChange={(details) => setChartMode((details.value[0] || "revenue") as ChartMode)}
+                        >
+                            <Select.HiddenSelect />
+                            <Select.Trigger borderRadius="md">
+                                <Select.ValueText placeholder="Revenue" />
+                            </Select.Trigger>
+                            <Portal>
+                                <Select.Positioner>
+                                    <Select.Content>
+                                        {chartModeCollection.items.map((item) => (
+                                            <Select.Item key={item.value} item={item}>
+                                                {item.label}
+                                            </Select.Item>
+                                        ))}
+                                    </Select.Content>
+                                </Select.Positioner>
+                            </Portal>
+                        </Select.Root>
                         {availableCurrencies.length > 1 && (
                             <Select.Root
                                 collection={currencyCollection}
@@ -217,6 +251,7 @@ export default function RevenuePage() {
                     connections={connections}
                     loading={loadingCharges}
                     filter={activeFilter}
+                    mode={chartMode}
                 />
             </Box>
 

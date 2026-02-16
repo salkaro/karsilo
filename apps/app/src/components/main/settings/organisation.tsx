@@ -6,17 +6,21 @@ import { useState } from "react"
 import { LuCamera } from "react-icons/lu"
 import { toast } from "sonner"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 
 // Local Imports
 import { IOrganisation } from "@repo/models"
 import { useOrganisation } from "@/hooks/useOrganisation"
 import { updateOrganisation } from "@/services/firebase/update"
+import { createOrganisation } from "@/services/firebase/admin-create"
+import { joinOrganisationAdmin } from "@/services/firebase/admin-update"
 import { levelTwoAccess, levelThreeAccess, currencies } from "@repo/constants"
 import {
     Box,
     Button,
     Card,
     Field,
+    Flex,
     Heading,
     HStack,
     Input,
@@ -32,11 +36,18 @@ const Organisation = () => {
     // Hooks
     const { data: session } = useSession()
     const { organisation, refetch } = useOrganisation()
+    const router = useRouter()
 
     // States
     const [changes, setChanges] = useState<Partial<IOrganisation>>({})
     const [loading, setLoading] = useState(false)
     const [imageDialogOpen, setImageDialogOpen] = useState(false)
+
+    // No-org states
+    const [orgAction, setOrgAction] = useState<"create" | "join">("create")
+    const [newOrgName, setNewOrgName] = useState("")
+    const [newOrgCurrency, setNewOrgCurrency] = useState("")
+    const [joinCode, setJoinCode] = useState("")
 
     const hasLevelTwoAccess = levelTwoAccess.includes(session?.user.organisation?.role as string)
     const hasLevelThreeAccess = levelThreeAccess.includes(session?.user.organisation?.role as string)
@@ -66,6 +77,57 @@ const Organisation = () => {
         refetch()
 
         setLoading(false)
+    }
+
+    async function handleCreateOrJoin(e: React.FormEvent) {
+        e.preventDefault()
+
+        if (!session?.user?.id || !session?.user?.email) {
+            toast.error("Session not ready. Please try again.")
+            return
+        }
+
+        setLoading(true)
+        try {
+            if (orgAction === "create") {
+                if (!newOrgName.trim()) {
+                    toast.error("Please enter an organisation name")
+                    return
+                }
+
+                const { error } = await createOrganisation({
+                    name: newOrgName.trim(),
+                    ownerId: session.user.id,
+                    email: session.user.email,
+                    currency: newOrgCurrency || undefined,
+                })
+
+                if (error) throw error
+                toast.success("Organisation created successfully!")
+            } else {
+                if (!joinCode.trim()) {
+                    toast.error("Please enter an invite code")
+                    return
+                }
+
+                const { error } = await joinOrganisationAdmin({
+                    code: joinCode.trim(),
+                    uid: session.user.id,
+                })
+
+                if (error) throw new Error(error)
+                toast.success("Joined organisation successfully!")
+            }
+
+            router.push("/preparing")
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Something went wrong",
+                { description: "Organisation may not exist or invite code is invalid" }
+            )
+        } finally {
+            setLoading(false)
+        }
     }
 
     // Get organisation initials
@@ -98,6 +160,103 @@ const Organisation = () => {
                     Your organisation information
                 </Text>
             </Box>
+
+            {!organisation && (
+                <Card.Root variant="outline">
+                    <Card.Body>
+                        <VStack gap={5} align="stretch">
+                            <Text color="gray.600" fontSize="sm">
+                                You are not part of an organisation. Create a new one or join an existing organisation with an invite code.
+                            </Text>
+
+                            <Flex gap={4}>
+                                <Button
+                                    variant={orgAction === "create" ? "solid" : "ghost"}
+                                    onClick={() => setOrgAction("create")}
+                                    size="sm"
+                                >
+                                    Create New
+                                </Button>
+                                <Button
+                                    variant={orgAction === "join" ? "solid" : "ghost"}
+                                    onClick={() => setOrgAction("join")}
+                                    size="sm"
+                                >
+                                    Join Existing
+                                </Button>
+                            </Flex>
+
+                            <Box as="form" onSubmit={handleCreateOrJoin}>
+                                {orgAction === "create" ? (
+                                    <VStack gap={4} align="stretch">
+                                        <Field.Root required>
+                                            <Field.Label>Organisation Name</Field.Label>
+                                            <Input
+                                                value={newOrgName}
+                                                onChange={(e) => setNewOrgName(e.target.value)}
+                                                placeholder="e.g. Salkaro Inc."
+                                                disabled={loading}
+                                            />
+                                        </Field.Root>
+                                        <Field.Root>
+                                            <Field.Label>Currency</Field.Label>
+                                            <NativeSelect.Root>
+                                                <NativeSelect.Field
+                                                    value={newOrgCurrency}
+                                                    onChange={(e) => setNewOrgCurrency(e.target.value)}
+                                                >
+                                                    <option value="">Select currency</option>
+                                                    {currencies.map((c) => (
+                                                        <option key={c.code} value={c.code}>
+                                                            {c.symbol} - {c.name} ({c.code})
+                                                        </option>
+                                                    ))}
+                                                </NativeSelect.Field>
+                                                <NativeSelect.Indicator />
+                                            </NativeSelect.Root>
+                                        </Field.Root>
+                                        <Box display="flex" justifyContent="flex-end">
+                                            <Button
+                                                type="submit"
+                                                size="sm"
+                                                disabled={loading || !newOrgName.trim()}
+                                            >
+                                                {loading && <Spinner size="sm" mr={2} />}
+                                                {loading ? "Creating..." : "Create Organisation"}
+                                            </Button>
+                                        </Box>
+                                    </VStack>
+                                ) : (
+                                    <VStack gap={4} align="stretch">
+                                        <Field.Root required>
+                                            <Field.Label>Invite Code</Field.Label>
+                                            <Input
+                                                value={joinCode}
+                                                onChange={(e) => setJoinCode(e.target.value)}
+                                                placeholder="e.g. AbCd1234"
+                                                disabled={loading}
+                                            />
+                                            <Field.HelperText>
+                                                Ask your organisation admin for an invite code
+                                            </Field.HelperText>
+                                        </Field.Root>
+                                        <Box display="flex" justifyContent="flex-end">
+                                            <Button
+                                                type="submit"
+                                                size="sm"
+                                                disabled={loading || !joinCode.trim()}
+                                            >
+                                                {loading && <Spinner size="sm" mr={2} />}
+                                                {loading ? "Joining..." : "Join Organisation"}
+                                            </Button>
+                                        </Box>
+                                    </VStack>
+                                )}
+                            </Box>
+                        </VStack>
+                    </Card.Body>
+                </Card.Root>
+            )}
 
             {organisation && (
                 <>
@@ -186,7 +345,7 @@ const Organisation = () => {
 
                                 <Field.Root>
                                     <Field.Label>Currency</Field.Label>
-                                    <NativeSelect.Root disabled={hasLevelThreeAccess}>
+                                    <NativeSelect.Root disabled={!hasLevelThreeAccess}>
                                         <NativeSelect.Field
                                             value={updateOrg?.currency || ""}
                                             onChange={(e) => handleChange("currency", e.target.value)}
@@ -208,7 +367,6 @@ const Organisation = () => {
                             <Card.Footer>
                                 <Box w="full" display="flex" justifyContent="flex-end">
                                     <Button
-                                        colorPalette="purple"
                                         size="sm"
                                         onClick={handleSave}
                                         disabled={loading}

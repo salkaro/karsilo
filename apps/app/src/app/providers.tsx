@@ -3,6 +3,7 @@
 import { createSystem, ChakraProvider, defaultConfig, defineConfig } from "@repo/ui/index";
 import { SessionProvider } from "next-auth/react";
 import { EmotionCacheProvider } from "./emotion";
+import { Toaster } from "sonner";
 
 
 const config = defineConfig({
@@ -130,6 +131,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             <SessionProvider>
                 <ChakraProvider value={system}>
                     {children}
+                    <Toaster richColors position="bottom-right" />
                 </ChakraProvider>
             </SessionProvider>
         </EmotionCacheProvider>

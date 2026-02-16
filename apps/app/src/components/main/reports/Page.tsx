@@ -27,9 +27,11 @@ export default function ReportsPage() {
     const { entities } = useEntities(organisation?.id ?? null);
     const {
         reportsByConnection,
+        consolidatedReports,
         loading,
         refetch,
         createReport,
+        createConsolidatedReport,
         creating,
     } = useReports(organisation?.id ?? null);
 
@@ -122,6 +124,7 @@ export default function ReportsPage() {
             {/* Reports Table */}
             <ReportsTable
                 reports={allReports}
+                consolidatedReports={consolidatedReports}
                 entities={entities}
                 connectionEntityMap={connectionEntityMap}
                 onRefresh={refetch}
@@ -132,9 +135,11 @@ export default function ReportsPage() {
             <CreateReportDialog
                 open={isCreateDialogOpen}
                 onClose={() => setIsCreateDialogOpen(false)}
+                organisation={organisation}
                 connections={connections || []}
                 entities={entities}
                 createReport={createReport}
+                createConsolidatedReport={createConsolidatedReport}
             />
         </VStack>
     );

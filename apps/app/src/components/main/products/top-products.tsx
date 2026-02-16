@@ -8,9 +8,10 @@ import { formatCurrency } from "@/utils/formatters";
 interface TopProductsProps {
     products: ProductWithStats[];
     maxItems?: number;
+    columns?: { base?: number, sm?: number, md?: number, lg?: number }
 }
 
-export const TopProducts = ({ products, maxItems = 4 }: TopProductsProps) => {
+export const TopProducts = ({ products, maxItems = 4, columns = { base: 1, sm: 2 } }: TopProductsProps) => {
     const topProducts = useMemo(() => {
         return products
             .filter((p) => p.totalRevenue > 0)
@@ -23,7 +24,7 @@ export const TopProducts = ({ products, maxItems = 4 }: TopProductsProps) => {
     }
 
     return (
-        <SimpleGrid columns={{ base: 1, sm: 2 }} gap={4}>
+        <SimpleGrid columns={columns} gap={4}>
             {topProducts.map((product) => (
                 <TopProductCard
                     key={product.id}

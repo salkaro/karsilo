@@ -1,4 +1,4 @@
-import { LucideIcon, UserRound, Wallet, Store, Table2, FilePlusCorner, UsersRound, ArrowLeftRight, UserLock, FileChartPie, Building2, Key, Package2 } from "lucide-react";
+import { LucideIcon, UserRound, Wallet, Store, Table2, FilePlusCorner, UsersRound, ArrowLeftRight, UserLock, FileChartPie, Building2, Key, Package2, Download, FolderUp } from "lucide-react";
 
 
 export interface IItem {
@@ -69,7 +69,7 @@ export const sidebarItems = {
             icon: Building2,
             description: "Overview of connected apps",
             type: "page" as const
-        },
+        }
     ] as IItem[],
 } as const satisfies Record<string, IItem[]>;
 

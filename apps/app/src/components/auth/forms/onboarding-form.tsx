@@ -10,12 +10,14 @@ import {
     Button,
     Field,
     Input,
+    NativeSelect,
     VStack,
     Heading,
     Text,
     Spinner,
     Flex,
 } from "@repo/ui"
+import { currencies } from "@repo/constants"
 
 // Local Imports
 import PreparingForm from "./preparing-form"
@@ -42,6 +44,7 @@ const OnboardingForm = () => {
     const [orgAction, setOrgAction] = useState<"create" | "join">(inviteIdFromUrl ? "join" : "create")
     // Create
     const [orgName, setOrgName] = useState("");
+    const [currency, setCurrency] = useState("");
     // Join
     const [joinCode, setJoinCode] = useState(inviteIdFromUrl || "")
 
@@ -98,6 +101,7 @@ const OnboardingForm = () => {
                         firstname,
                         lastname,
                         organisation: orgName,
+                        currency: currency || undefined,
                     })
                     toast.success("Organisation created and onboarding complete!")
                 } else if (orgAction === "join") {
@@ -237,6 +241,23 @@ const OnboardingForm = () => {
                                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOrgName(e.target.value)}
                                         placeholder="Salkaro Inc."
                                     />
+                                </Field.Root>
+                                <Field.Root>
+                                    <Field.Label>Currency</Field.Label>
+                                    <NativeSelect.Root>
+                                        <NativeSelect.Field
+                                            value={currency}
+                                            onChange={(e) => setCurrency(e.target.value)}
+                                        >
+                                            <option value="">Select currency</option>
+                                            {currencies.map((c) => (
+                                                <option key={c.code} value={c.code}>
+                                                    {c.symbol} - {c.name} ({c.code})
+                                                </option>
+                                            ))}
+                                        </NativeSelect.Field>
+                                        <NativeSelect.Indicator />
+                                    </NativeSelect.Root>
                                 </Field.Root>
                             </VStack>
                         ) : (

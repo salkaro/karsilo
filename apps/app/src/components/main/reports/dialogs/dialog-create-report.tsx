@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { toast } from "sonner";
 import {
     Grid,
@@ -11,11 +11,15 @@ import {
 } from "@repo/ui";
 import CustomDialog from "@/components/ui/dialog";
 import { ReportType } from "@/services/stripe/create";
-import { IConnection, IEntity } from "@repo/models";
+import { IConnection, IEntity, IOrganisation } from "@repo/models";
+import { historyLimit } from "@repo/constants";
+
+type ReportCategory = "stripe" | "consolidated";
 
 interface Props {
     open: boolean;
     onClose: () => void;
+    organisation: IOrganisation | null;
     connections: IConnection[];
     entities: IEntity[] | null;
     createReport: (params: {
@@ -24,7 +28,16 @@ interface Props {
         intervalStart: number;
         intervalEnd: number;
     }) => Promise<{ success: boolean; error?: string }>;
+    createConsolidatedReport: (params: {
+        intervalStart: number;
+        intervalEnd: number;
+    }) => Promise<{ success: boolean; error?: string }>;
 }
+
+const REPORT_CATEGORY_OPTIONS: { value: ReportCategory; label: string }[] = [
+    { value: "stripe", label: "Stripe Report (Single Account)" },
+    { value: "consolidated", label: "Consolidated Report (All Accounts)" },
+];
 
 const REPORT_TYPE_OPTIONS: { value: ReportType; label: string }[] = [
     { value: "balance_change_from_activity.summary.1", label: "Balance Activity (Summary)" },
@@ -118,19 +131,47 @@ function parseInputDate(dateString: string, isEnd = false): number {
     return Math.floor(date.getTime() / 1000);
 }
 
+type SubscriptionTier = keyof typeof historyLimit;
+
+function getEarliestAllowedDate(subscription: SubscriptionTier): Date | null {
+    const limit = historyLimit[subscription];
+    if (limit === null) return null; // pro: unlimited
+
+    const now = new Date();
+    switch (limit) {
+        case "month":
+            return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, now.getUTCDate()));
+        case "year":
+            return new Date(Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), now.getUTCDate()));
+        case "3year":
+            return new Date(Date.UTC(now.getUTCFullYear() - 3, now.getUTCMonth(), now.getUTCDate()));
+        default:
+            return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, now.getUTCDate()));
+    }
+}
+
+function formatDateForInput(date: Date): string {
+    return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+}
+
 const CreateReportDialog: React.FC<Props> = ({
     open,
     onClose,
+    organisation,
     connections,
     entities,
     createReport,
+    createConsolidatedReport,
 }) => {
+    const [reportCategory, setReportCategory] = useState<ReportCategory>("stripe");
     const [connectionId, setConnectionId] = useState("");
     const [reportType, setReportType] = useState<ReportType>("balance_change_from_activity.summary.1");
     const [period, setPeriod] = useState("last_month");
     const [customStart, setCustomStart] = useState("");
     const [customEnd, setCustomEnd] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const isConsolidated = reportCategory === "consolidated";
 
     const stripeConnections = useMemo(() => {
         return connections.filter(
@@ -148,12 +189,61 @@ const CreateReportDialog: React.FC<Props> = ({
         });
     }, [stripeConnections, entities]);
 
-    async function handleSubmit() {
-        if (!connectionId) {
-            toast.error("Please select an account");
-            return;
-        }
+    // Determine the earliest allowed date based on subscription and connection data
+    const selectedConnection = useMemo(() => {
+        return stripeConnections.find((c) => c.id === connectionId);
+    }, [stripeConnections, connectionId]);
 
+    const earliestAllowedDate = useMemo(() => {
+        const subscription = (organisation?.subscription as SubscriptionTier) ?? "free";
+        const subscriptionEarliest = getEarliestAllowedDate(subscription);
+
+        // For consolidated reports, don't factor in connection date
+        if (isConsolidated) return subscriptionEarliest;
+
+        const connectedAt = selectedConnection?.connectedAt
+            ? new Date(selectedConnection.connectedAt * 1000)
+            : null;
+
+        if (!subscriptionEarliest && !connectedAt) return null;
+        if (!subscriptionEarliest) return connectedAt;
+        if (!connectedAt) return subscriptionEarliest;
+
+        // Use whichever is more recent (more restrictive)
+        return subscriptionEarliest > connectedAt ? subscriptionEarliest : connectedAt;
+    }, [organisation?.subscription, selectedConnection?.connectedAt, isConsolidated]);
+
+    // Determine which period options are available
+    const periodOptions = useMemo(() => {
+        if (!earliestAllowedDate) return PERIOD_OPTIONS;
+
+        const earliestTimestamp = Math.floor(earliestAllowedDate.getTime() / 1000);
+
+        return PERIOD_OPTIONS.map((opt) => {
+            if (opt.value === "custom") return { ...opt, disabled: false };
+
+            const range = getDateRange(opt.value);
+            const disabled = range.start < earliestTimestamp;
+            return { ...opt, disabled };
+        });
+    }, [earliestAllowedDate]);
+
+    // Min date string for custom date inputs
+    const minDateStr = useMemo(() => {
+        if (!earliestAllowedDate) return undefined;
+        return formatDateForInput(earliestAllowedDate);
+    }, [earliestAllowedDate]);
+
+    // Reset period if the selected one becomes disabled
+    useEffect(() => {
+        const current = periodOptions.find((o) => o.value === period);
+        if (current && "disabled" in current && current.disabled) {
+            const firstAvailable = periodOptions.find((o) => !("disabled" in o) || !o.disabled);
+            if (firstAvailable) setPeriod(firstAvailable.value);
+        }
+    }, [periodOptions, period]);
+
+    async function handleSubmit() {
         let intervalStart: number;
         let intervalEnd: number;
 
@@ -169,40 +259,82 @@ const CreateReportDialog: React.FC<Props> = ({
                 toast.error("Start date must be before end date");
                 return;
             }
+
+            if (earliestAllowedDate) {
+                const earliestTimestamp = Math.floor(earliestAllowedDate.getTime() / 1000);
+                if (intervalStart < earliestTimestamp) {
+                    toast.error("Start date is outside your available range", {
+                        description: `Your plan allows data from ${formatDateForInput(earliestAllowedDate)} onwards.`,
+                    });
+                    return;
+                }
+            }
         } else {
             const range = getDateRange(period);
             intervalStart = range.start;
             intervalEnd = range.end;
         }
 
-        try {
-            setIsSubmitting(true);
-            const { success, error } = await createReport({
-                connectionId,
-                reportType,
-                intervalStart,
-                intervalEnd,
-            });
+        if (isConsolidated) {
+            try {
+                setIsSubmitting(true);
+                const { success, error } = await createConsolidatedReport({
+                    intervalStart,
+                    intervalEnd,
+                });
 
-            if (!success) {
-                toast.error("Failed to create report", { description: error });
+                if (!success) {
+                    toast.error("Failed to create consolidated report", { description: error });
+                    return;
+                }
+
+                toast.success("Consolidated report created", {
+                    description: "Your consolidated report has been generated successfully.",
+                });
+                handleClose();
+            } catch {
+                toast.error("Failed to create consolidated report", {
+                    description: "An unexpected error occurred. Please try again.",
+                });
+            } finally {
+                setIsSubmitting(false);
+            }
+        } else {
+            if (!connectionId) {
+                toast.error("Please select an account");
                 return;
             }
 
-            toast.success("Report created", {
-                description: "Your report is being generated. This may take a few minutes.",
-            });
-            handleClose();
-        } catch {
-            toast.error("Failed to create report", {
-                description: "An unexpected error occurred. Please try again.",
-            });
-        } finally {
-            setIsSubmitting(false);
+            try {
+                setIsSubmitting(true);
+                const { success, error } = await createReport({
+                    connectionId,
+                    reportType,
+                    intervalStart,
+                    intervalEnd,
+                });
+
+                if (!success) {
+                    toast.error("Failed to create report", { description: error });
+                    return;
+                }
+
+                toast.success("Report created", {
+                    description: "Your report is being generated. This may take a few minutes.",
+                });
+                handleClose();
+            } catch {
+                toast.error("Failed to create report", {
+                    description: "An unexpected error occurred. Please try again.",
+                });
+            } finally {
+                setIsSubmitting(false);
+            }
         }
     }
 
     function handleClose() {
+        setReportCategory("stripe");
         setConnectionId("");
         setReportType("balance_change_from_activity.summary.1");
         setPeriod("last_month");
@@ -222,45 +354,27 @@ const CreateReportDialog: React.FC<Props> = ({
             open={open}
             onOpenChange={handleOpenChange}
             title="Create Report"
-            description="Generate a new financial report from Stripe"
-            confirmText="Create Report"
+            description={isConsolidated
+                ? "Generate a consolidated report across all Stripe accounts"
+                : "Generate a new financial report from Stripe"
+            }
+            confirmText={isConsolidated ? "Generate Report" : "Create Report"}
             onConfirm={handleSubmit}
             isLoading={isSubmitting}
-            loadingText="Creating..."
+            loadingText={isConsolidated ? "Generating..." : "Creating..."}
         >
             <VStack gap={4} align="stretch" py={4}>
-                {/* Account Selection */}
+                {/* Report Category */}
                 <Grid templateColumns="1fr 3fr" gap={4} alignItems="center">
                     <Text fontSize="sm" textAlign="right">
-                        Account
+                        Report Category
                     </Text>
                     <NativeSelect.Root>
                         <NativeSelect.Field
-                            value={connectionId}
-                            onChange={(e) => setConnectionId(e.target.value)}
+                            value={reportCategory}
+                            onChange={(e) => setReportCategory(e.target.value as ReportCategory)}
                         >
-                            <option value="">Select an account</option>
-                            {connectionOptions.map((opt) => (
-                                <option key={opt.id} value={opt.id}>
-                                    {opt.label}
-                                </option>
-                            ))}
-                        </NativeSelect.Field>
-                        <NativeSelect.Indicator />
-                    </NativeSelect.Root>
-                </Grid>
-
-                {/* Report Type */}
-                <Grid templateColumns="1fr 3fr" gap={4} alignItems="center">
-                    <Text fontSize="sm" textAlign="right">
-                        Report Type
-                    </Text>
-                    <NativeSelect.Root>
-                        <NativeSelect.Field
-                            value={reportType}
-                            onChange={(e) => setReportType(e.target.value as ReportType)}
-                        >
-                            {REPORT_TYPE_OPTIONS.map((opt) => (
+                            {REPORT_CATEGORY_OPTIONS.map((opt) => (
                                 <option key={opt.value} value={opt.value}>
                                     {opt.label}
                                 </option>
@@ -269,6 +383,51 @@ const CreateReportDialog: React.FC<Props> = ({
                         <NativeSelect.Indicator />
                     </NativeSelect.Root>
                 </Grid>
+
+                {/* Account Selection - only for Stripe reports */}
+                {!isConsolidated && (
+                    <Grid templateColumns="1fr 3fr" gap={4} alignItems="center">
+                        <Text fontSize="sm" textAlign="right">
+                            Account
+                        </Text>
+                        <NativeSelect.Root>
+                            <NativeSelect.Field
+                                value={connectionId}
+                                onChange={(e) => setConnectionId(e.target.value)}
+                            >
+                                <option value="">Select an account</option>
+                                {connectionOptions.map((opt) => (
+                                    <option key={opt.id} value={opt.id}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </NativeSelect.Field>
+                            <NativeSelect.Indicator />
+                        </NativeSelect.Root>
+                    </Grid>
+                )}
+
+                {/* Report Type - only for Stripe reports */}
+                {!isConsolidated && (
+                    <Grid templateColumns="1fr 3fr" gap={4} alignItems="center">
+                        <Text fontSize="sm" textAlign="right">
+                            Report Type
+                        </Text>
+                        <NativeSelect.Root>
+                            <NativeSelect.Field
+                                value={reportType}
+                                onChange={(e) => setReportType(e.target.value as ReportType)}
+                            >
+                                {REPORT_TYPE_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </NativeSelect.Field>
+                            <NativeSelect.Indicator />
+                        </NativeSelect.Root>
+                    </Grid>
+                )}
 
                 {/* Period */}
                 <Grid templateColumns="1fr 3fr" gap={4} alignItems="center">
@@ -280,9 +439,9 @@ const CreateReportDialog: React.FC<Props> = ({
                             value={period}
                             onChange={(e) => setPeriod(e.target.value)}
                         >
-                            {PERIOD_OPTIONS.map((opt) => (
-                                <option key={opt.value} value={opt.value}>
-                                    {opt.label}
+                            {periodOptions.map((opt) => (
+                                <option key={opt.value} value={opt.value} disabled={"disabled" in opt && !!opt.disabled}>
+                                    {opt.label}{"disabled" in opt && opt.disabled ? " (unavailable)" : ""}
                                 </option>
                             ))}
                         </NativeSelect.Field>
@@ -300,6 +459,7 @@ const CreateReportDialog: React.FC<Props> = ({
                             <Input
                                 type="date"
                                 value={customStart}
+                                min={minDateStr}
                                 onChange={(e) => setCustomStart(e.target.value)}
                             />
                         </Grid>
@@ -310,6 +470,7 @@ const CreateReportDialog: React.FC<Props> = ({
                             <Input
                                 type="date"
                                 value={customEnd}
+                                min={minDateStr}
                                 onChange={(e) => setCustomEnd(e.target.value)}
                             />
                         </Grid>

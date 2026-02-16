@@ -1,4 +1,12 @@
 export const colors = [
+    "purple.400",
+    "blue.400",
+    "green.400",
+    "orange.400",
+    "pink.400",
+    "cyan.400",
+    "yellow.400",
+    "red.400",
     '#3b82f6',
     '#ec4899', 
     '#ef4444', 

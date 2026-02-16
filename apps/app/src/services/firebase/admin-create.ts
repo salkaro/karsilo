@@ -37,11 +37,13 @@ export async function createUser({ uid, email }: { uid: string, email: string })
 export async function createOrganisation({
     name,
     ownerId,
-    email
+    email,
+    currency
 }: {
     name: string;
     ownerId: string;
     email: string;
+    currency?: string;
 }): Promise<{ org?: IOrganisation, error?: unknown }> {
     try {
         const orgRef = firestoreAdmin.collection(organisationsCol).doc();
@@ -56,6 +58,7 @@ export async function createOrganisation({
             subscription: "free",
             members: 1,
             stripeCustomerId,
+            currency: currency as IOrganisation["currency"],
             createdAt: now,
         };
 

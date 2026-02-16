@@ -1,15 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
-import { HStack, Text, Badge, Avatar, Link } from "@repo/ui";
-import { IEntity } from "@repo/models";
+import { useMemo, useState } from "react";
+import { HStack, Text, Badge, Avatar, Link, Button } from "@repo/ui";
+import { IEntity, IConsolidateReport } from "@repo/models";
 import { DataTable, Column, SummaryCard } from "@/components/ui/table";
 import { formatDateByTimeAgo } from "@/utils/formatters";
-import { FileText, CheckCircle, Clock, XCircle, Download } from "lucide-react";
+import { FileText, CheckCircle, Clock, XCircle, Download, Eye, Layers } from "lucide-react";
 import { IReport } from "@/hooks/useReports";
+import ConsolidatedReportDetailsDialog from "./dialogs/dialog-consolidated-report-details";
+import ExportReportDialog from "../export/dialogs/dialog-export-report";
 
 interface ReportsTableProps {
     reports: (IReport & { connectionId: string })[];
+    consolidatedReports: IConsolidateReport[] | null;
     entities: IEntity[] | null;
     connectionEntityMap: Record<string, string>;
     onRefresh?: () => void;
@@ -33,22 +36,46 @@ const REPORT_TYPE_LABELS: Record<string, string> = {
     "payouts.itemized.3": "Payouts (Itemized v3)",
     "payouts.summary.1": "Payouts (Summary)",
     "ending_balance_reconciliation.itemized.4": "Ending Balance Reconciliation",
+    "consolidated": "Consolidated Report",
 };
 
 export const ReportsTable = ({
     reports,
+    consolidatedReports,
     entities,
     connectionEntityMap,
     onRefresh,
     loading,
 }: ReportsTableProps) => {
+    const [selectedConsolidatedReport, setSelectedConsolidatedReport] = useState<IConsolidateReport | null>(null);
+    const [exportReport, setExportReport] = useState<IConsolidateReport | null>(null);
+
+    // Merge stripe reports and consolidated reports into a unified list
+    const allReports = useMemo(() => {
+        const stripeReports: (IReport & { connectionId: string })[] = reports.map(r => ({
+            ...r,
+            reportSource: "stripe" as const,
+        }));
+
+        const consolidatedAsReports: (IReport & { connectionId: string })[] = (consolidatedReports || []).map(cr => ({
+            id: cr.id,
+            reportType: "consolidated",
+            status: cr.status === "completed" ? "succeeded" as const : "failed" as const,
+            createdAt: new Date(cr.createdAt).toISOString(),
+            reportSource: "consolidated" as const,
+            connectionId: "",
+        }));
+
+        return [...stripeReports, ...consolidatedAsReports];
+    }, [reports, consolidatedReports]);
+
     const sortedReports = useMemo(() => {
-        return [...reports].sort(
+        return [...allReports].sort(
             (a, b) =>
                 new Date(b.createdAt).getTime() -
                 new Date(a.createdAt).getTime()
         );
-    }, [reports]);
+    }, [allReports]);
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -77,9 +104,10 @@ export const ReportsTable = ({
     };
 
     const summaryCards: SummaryCard[] = useMemo(() => {
-        const succeeded = reports.filter((r) => r.status === "succeeded").length;
-        const pending = reports.filter((r) => r.status === "pending").length;
-        const failed = reports.filter((r) => r.status === "failed").length;
+        const succeeded = allReports.filter((r) => r.status === "succeeded").length;
+        const pending = allReports.filter((r) => r.status === "pending").length;
+        const failed = allReports.filter((r) => r.status === "failed").length;
+        const consolidated = (consolidatedReports || []).length;
 
         return [
             {
@@ -87,7 +115,7 @@ export const ReportsTable = ({
                 iconColor: "blue.500",
                 iconBg: "blue.500/10",
                 label: "Total Reports",
-                value: reports.length,
+                value: allReports.length,
             },
             {
                 icon: <CheckCircle size={20} />,
@@ -97,21 +125,21 @@ export const ReportsTable = ({
                 value: succeeded,
             },
             {
-                icon: <Clock size={20} />,
-                iconColor: "yellow.500",
-                iconBg: "yellow.500/10",
-                label: "Pending",
-                value: pending,
+                icon: <Layers size={20} />,
+                iconColor: "purple.500",
+                iconBg: "purple.500/10",
+                label: "Consolidated",
+                value: consolidated,
             },
             {
                 icon: <XCircle size={20} />,
                 iconColor: "red.500",
                 iconBg: "red.500/10",
                 label: "Failed",
-                value: failed,
+                value: failed + pending,
             },
         ];
-    }, [reports]);
+    }, [allReports, consolidatedReports]);
 
     const columns: Column<IReport & { connectionId: string }>[] = useMemo(
         () => [
@@ -119,6 +147,21 @@ export const ReportsTable = ({
                 key: "entity",
                 header: "Entity",
                 render: (report: IReport & { connectionId: string }) => {
+                    if (report.reportSource === "consolidated") {
+                        return (
+                            <HStack gap={2}>
+                                <Avatar.Root size="sm">
+                                    <Avatar.Fallback>
+                                        <Layers size={14} />
+                                    </Avatar.Fallback>
+                                </Avatar.Root>
+                                <Text fontSize="sm" fontWeight="medium">
+                                    All Entities
+                                </Text>
+                            </HStack>
+                        );
+                    }
+
                     const entityId = report.connectionId
                         ? connectionEntityMap[report.connectionId]
                         : null;
@@ -185,9 +228,40 @@ export const ReportsTable = ({
             },
             {
                 key: "download",
-                header: "Download",
+                header: "Actions",
                 align: "right",
                 render: (report: IReport) => {
+                    if (report.reportSource === "consolidated") {
+                        const consolidatedReport = consolidatedReports?.find(cr => cr.id === report.id);
+                        if (!consolidatedReport) {
+                            return (
+                                <Text fontSize="sm" color="gray.400">
+                                    -
+                                </Text>
+                            );
+                        }
+                        return (
+                            <HStack gap={1}>
+                                <Button
+                                    size="xs"
+                                    variant="ghost"
+                                    onClick={() => setSelectedConsolidatedReport(consolidatedReport)}
+                                >
+                                    <Eye size={16} />
+                                    View
+                                </Button>
+                                <Button
+                                    size="xs"
+                                    variant="ghost"
+                                    onClick={() => setExportReport(consolidatedReport)}
+                                >
+                                    <Download size={16} />
+                                    Export
+                                </Button>
+                            </HStack>
+                        );
+                    }
+
                     if (report.status !== "succeeded" || !report.resultUrl) {
                         return (
                             <Text fontSize="sm" color="gray.400">
@@ -211,13 +285,19 @@ export const ReportsTable = ({
                 },
             },
         ],
-        [entities, connectionEntityMap]
+        [entities, connectionEntityMap, consolidatedReports]
     );
 
     const searchFilter = (
         report: IReport & { connectionId: string },
         query: string
     ) => {
+        const q = query.toLowerCase();
+
+        if (report.reportSource === "consolidated") {
+            return "consolidated".includes(q) || "all entities".includes(q);
+        }
+
         const entityId = report.connectionId
             ? connectionEntityMap[report.connectionId]
             : null;
@@ -225,7 +305,6 @@ export const ReportsTable = ({
             ? entities?.find((e) => e.id === entityId)
             : null;
         const entityName = entity?.name?.toLowerCase() || "";
-        const q = query.toLowerCase();
         const reportTypeLabel =
             REPORT_TYPE_LABELS[report.reportType]?.toLowerCase() ||
             report.reportType.toLowerCase();
@@ -238,16 +317,28 @@ export const ReportsTable = ({
     };
 
     return (
-        <DataTable
-            data={sortedReports}
-            columns={columns}
-            getRowKey={(report: IReport) => report.id}
-            searchPlaceholder="Search by entity, report type, or status..."
-            searchFilter={searchFilter}
-            summaryCards={summaryCards}
-            onRefresh={onRefresh}
-            loading={loading}
-            emptyMessage="No reports found"
-        />
+        <>
+            <DataTable
+                data={sortedReports}
+                columns={columns}
+                getRowKey={(report: IReport) => report.id}
+                searchPlaceholder="Search by entity, report type, or status..."
+                searchFilter={searchFilter}
+                summaryCards={summaryCards}
+                onRefresh={onRefresh}
+                loading={loading}
+                emptyMessage="No reports found"
+            />
+            <ConsolidatedReportDetailsDialog
+                open={!!selectedConsolidatedReport}
+                onClose={() => setSelectedConsolidatedReport(null)}
+                report={selectedConsolidatedReport}
+            />
+            <ExportReportDialog
+                open={!!exportReport}
+                onClose={() => setExportReport(null)}
+                report={exportReport}
+            />
+        </>
     );
 };

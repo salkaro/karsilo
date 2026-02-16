@@ -25,6 +25,7 @@ interface Props {
     entities: IEntity[];
     connections: IConnection[];
     refetchEntities: () => void;
+    hasEditAccess?: boolean;
 }
 
 const EntityTable: React.FC<Props> = ({
@@ -32,6 +33,7 @@ const EntityTable: React.FC<Props> = ({
     entities,
     connections,
     refetchEntities,
+    hasEditAccess = false,
 }) => {
     const [editingEntity, setEditingEntity] = useState<IEntity | null>(null);
     const [deletingEntity, setDeletingEntity] = useState<IEntity | null>(null);
@@ -62,62 +64,68 @@ const EntityTable: React.FC<Props> = ({
     };
 
     const columns: Column<IEntity>[] = useMemo(
-        () => [
-            {
-                key: "entity",
-                header: "Entity",
-                render: (entity: IEntity) => (
-                    <HStack gap={3}>
-                        <Avatar.Root size="sm">
-                            <Avatar.Image
-                                src={
-                                    entity.images?.logo?.primary ||
-                                    entity.images?.profile?.square
-                                }
-                            />
-                            <Avatar.Fallback name={entity.name}>
-                                {entity.name?.charAt(0) || "?"}
-                            </Avatar.Fallback>
-                        </Avatar.Root>
-                        <VStack align="start" gap={0}>
-                            <Text fontWeight="medium" fontSize="sm">
-                                {entity.name}
-                            </Text>
-                            {entity.owner && (
-                                <Text fontSize="xs" color="gray.500">
-                                    {entity.owner}
+        () => {
+            const cols: Column<IEntity>[] = [
+                {
+                    key: "entity",
+                    header: "Entity",
+                    render: (entity: IEntity) => (
+                        <HStack gap={3}>
+                            <Avatar.Root size="sm">
+                                <Avatar.Image
+                                    src={
+                                        entity.images?.logo?.primary ||
+                                        entity.images?.profile?.square
+                                    }
+                                />
+                                <Avatar.Fallback name={entity.name}>
+                                    {entity.name?.charAt(0) || "?"}
+                                </Avatar.Fallback>
+                            </Avatar.Root>
+                            <VStack align="start" gap={0}>
+                                <Text fontWeight="medium" fontSize="sm">
+                                    {entity.name}
                                 </Text>
-                            )}
-                        </VStack>
-                    </HStack>
-                ),
-            },
-            {
-                key: "description",
-                header: "Description",
-                render: (entity: IEntity) => (
-                    <Text fontSize="sm" color="gray.500" lineClamp={2}>
-                        {entity.description || "\u2014"}
-                    </Text>
-                ),
-            },
-            {
-                key: "connections",
-                header: "Connections",
-                render: (entity: IEntity) => {
-                    const connection = connections?.find(
-                        (c) => c.entityId === entity.id
-                    );
-                    return (
-                        <ManageConnectionDialog
-                            entity={entity}
-                            connection={connection as IConnection}
-                            onConnectionChange={refetchEntities}
-                        />
-                    );
+                                {entity.owner && (
+                                    <Text fontSize="xs" color="gray.500">
+                                        {entity.owner}
+                                    </Text>
+                                )}
+                            </VStack>
+                        </HStack>
+                    ),
                 },
-            },
-            {
+                {
+                    key: "description",
+                    header: "Description",
+                    render: (entity: IEntity) => (
+                        <Text fontSize="sm" color="gray.500" lineClamp={2}>
+                            {entity.description || "\u2014"}
+                        </Text>
+                    ),
+                },
+            ];
+
+            if (hasEditAccess) {
+                cols.push({
+                    key: "connections",
+                    header: "Connections",
+                    render: (entity: IEntity) => {
+                        const connection = connections?.find(
+                            (c) => c.entityId === entity.id
+                        );
+                        return (
+                            <ManageConnectionDialog
+                                entity={entity}
+                                connection={connection as IConnection}
+                                onConnectionChange={refetchEntities}
+                            />
+                        );
+                    },
+                });
+            }
+
+            cols.push({
                 key: "created",
                 header: "Created",
                 align: "right",
@@ -126,48 +134,53 @@ const EntityTable: React.FC<Props> = ({
                         {formatDateByTimeAgo(entity.createdAt)}
                     </Text>
                 ),
-            },
-            {
-                key: "actions",
-                header: "",
-                align: "right",
-                render: (entity: IEntity) => (
-                    <HStack justify="flex-end">
-                        <Menu.Root>
-                            <Menu.Trigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    color="fg.muted"
-                                >
-                                    <LuEllipsisVertical />
-                                </Button>
-                            </Menu.Trigger>
-                            <Portal>
-                                <Menu.Positioner>
-                                    <Menu.Content minW="128px">
-                                        <Menu.Item
-                                            value="edit"
-                                            onClick={() => setEditingEntity(entity)}
-                                        >
-                                            Edit
-                                        </Menu.Item>
-                                        <Menu.Item
-                                            value="delete"
-                                            color="red.500"
-                                            onClick={() => setDeletingEntity(entity)}
-                                        >
-                                            Delete
-                                        </Menu.Item>
-                                    </Menu.Content>
-                                </Menu.Positioner>
-                            </Portal>
-                        </Menu.Root>
-                    </HStack>
-                ),
-            },
-        ],
-        [connections, refetchEntities]
+            });
+
+            if (hasEditAccess) {
+                cols.push({
+                    key: "actions",
+                    header: "",
+                    align: "right",
+                    render: (entity: IEntity) => (
+                        <HStack justify="flex-end">
+                            <Menu.Root>
+                                <Menu.Trigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        color="fg.muted"
+                                    >
+                                        <LuEllipsisVertical />
+                                    </Button>
+                                </Menu.Trigger>
+                                <Portal>
+                                    <Menu.Positioner>
+                                        <Menu.Content minW="128px">
+                                            <Menu.Item
+                                                value="edit"
+                                                onClick={() => setEditingEntity(entity)}
+                                            >
+                                                Edit
+                                            </Menu.Item>
+                                            <Menu.Item
+                                                value="delete"
+                                                color="red.500"
+                                                onClick={() => setDeletingEntity(entity)}
+                                            >
+                                                Delete
+                                            </Menu.Item>
+                                        </Menu.Content>
+                                    </Menu.Positioner>
+                                </Portal>
+                            </Menu.Root>
+                        </HStack>
+                    ),
+                });
+            }
+
+            return cols;
+        },
+        [connections, refetchEntities, hasEditAccess]
     );
 
     const searchFilter = (entity: IEntity, query: string): boolean => {

@@ -116,6 +116,7 @@ const Page = () => {
                     refetchEntities={handleEntityCreated}
                     organisationId={organisation?.id as string}
                     connections={connections as IConnection[]}
+                    hasEditAccess={hasEditAccess}
                 />
             ) : (
                 <Box p={8} textAlign="center" bg="gray.50" borderRadius="lg">

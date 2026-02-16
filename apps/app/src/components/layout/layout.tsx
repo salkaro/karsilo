@@ -3,6 +3,7 @@
 import { Box } from "@repo/ui"
 import FirebaseProvider from "../firebase-provider"
 import OnboardingModal from "../main/onboarding/onboarding-modal"
+import DowngradeModal from "../main/downgrade/downgrade-modal"
 
 import LayoutHeader from "./layout-header"
 import Sidebar from "../ui/sidebar"
@@ -17,8 +18,11 @@ export default function Layout({ className, children }: { className?: string, ch
     const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
 
     useEffect(() => {
-        const timeout = setTimeout(() => setIsSidebarOpen(false), 0)
-        return () => clearTimeout(timeout)
+        const isMobile = window.matchMedia("(max-width: 48em)").matches
+        if (isMobile) {
+            const timeout = setTimeout(() => setIsSidebarOpen(false), 0)
+            return () => clearTimeout(timeout)
+        }
     }, [pathname])
 
     return (
@@ -62,6 +66,7 @@ export default function Layout({ className, children }: { className?: string, ch
                 </Box>
             </Box>
             <OnboardingModal />
+            <DowngradeModal />
         </FirebaseProvider>
     )
 }

@@ -1,13 +1,13 @@
 "use client";
 
-import { Box, Skeleton, HStack, VStack, Flex, Text, Icon } from "@repo/ui";
+import { Box, Skeleton, HStack, VStack, Flex, Text, Icon, Chart, useChart, Recharts } from "@repo/ui";
 import { ICharge, IConnection, IOrganisation, IEntity } from "@repo/models";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Balloon } from "lucide-react";
-import { SVGChart } from "@/components/ui/chart";
-import { SVGChartDataPoint, SVGChartSeries } from "@/components/ui/chart/models";
+import { colors } from "@/constants/colors";
 
 type FilterTab = "all" | "week" | "month" | "year";
+type ChartMode = "revenue" | "payments" | "volume" | "earnings";
 
 interface ChartRevenueProps {
     organisation: IOrganisation | null;
@@ -16,28 +16,16 @@ interface ChartRevenueProps {
     entities: IEntity[] | null;
     loading?: boolean;
     filter: FilterTab;
+    mode: ChartMode;
 }
-
-// Color palette for different connections
-const CONNECTION_COLORS = [
-    "#8b5cf6", // purple
-    "#3b82f6", // blue
-    "#10b981", // green
-    "#f59e0b", // orange
-    "#ec4899", // pink
-    "#06b6d4", // cyan
-    "#eab308", // yellow
-    "#ef4444", // red
-];
 
 const ChartSkeleton = () => (
     <Box
-        bg="#111827"
+        bg="#0b0b1a"
         p={6}
         borderRadius="xl"
-        border="1px solid"
-        borderColor="gray.200"
-        shadow="sm"
+        border="1px solid rgba(255, 255, 255, 0.2)"
+        shadow="2xl"
         height={{ base: "280px", xl: "400px", "2xl": "500px" }}
     >
         <VStack height="100%" gap={4}>
@@ -75,6 +63,8 @@ const ChartSkeleton = () => (
     </Box>
 );
 
+const TOTAL_COLOR = "white";
+
 export const ChartRevenue = ({
     organisation,
     chargesByConnection,
@@ -82,40 +72,57 @@ export const ChartRevenue = ({
     entities,
     loading,
     filter,
+    mode,
 }: ChartRevenueProps) => {
     const groupByDays = filter === "week" || filter === "month";
-    const currency = organisation?.currency || "USD";
 
-    const { chartData, seriesConfig } = useMemo(() => {
+    // Extract all unique currencies from charges
+    const availableCurrencies = useMemo(() => {
+        if (!chargesByConnection) return [] as string[];
+        const currencies = new Set<string>();
+        Object.values(chargesByConnection).forEach((charges) => {
+            charges.forEach((charge) => {
+                if (charge.currency) currencies.add(charge.currency.toUpperCase());
+            });
+        });
+        const sorted = Array.from(currencies).sort();
+        return sorted.length > 0 ? sorted : [organisation?.currency || "USD"];
+    }, [chargesByConnection, organisation?.currency]);
+
+    const [selectedCurrency, setSelectedCurrency] = useState<string | null>(null);
+    const currency = selectedCurrency || availableCurrencies[0] || organisation?.currency || "USD";
+
+    const { chartData, seriesConfig, hasMultipleSeries } = useMemo(() => {
         if (!chargesByConnection || !connections) {
-            return { chartData: [], seriesConfig: [] };
+            return { chartData: [], seriesConfig: [], hasMultipleSeries: false };
         }
 
         // Get connection IDs that have charges
         const connectionIds = Object.keys(chargesByConnection);
         if (connectionIds.length === 0) {
-            return { chartData: [], seriesConfig: [] };
+            return { chartData: [], seriesConfig: [], hasMultipleSeries: false };
         }
 
         // Build series config with entity names
-        const series: SVGChartSeries[] = connectionIds.map((connectionId, index) => {
+        const series = connectionIds.map((connectionId, index) => {
             const connection = connections.find((c) => c.id === connectionId);
             const entity = entities?.find((e) => e.id === connection?.entityId);
             const name = entity?.name || connection?.stripeAccountId?.slice(0, 8) || `Connection ${index + 1}`;
             return {
-                id: connectionId,
-                name,
-                color: CONNECTION_COLORS[index % CONNECTION_COLORS.length],
+                name: connectionId,
+                label: name,
+                color: colors[index % colors.length],
             };
         });
 
-        // Aggregate revenue by period for each connection
+        // Aggregate revenue by period for each connection (filtered by currency)
         const revenueByPeriod: Record<string, Record<string, number>> = {};
 
         connectionIds.forEach((connectionId) => {
             const charges = chargesByConnection[connectionId] || [];
             charges.forEach((charge) => {
                 if (charge.status !== "successful") return;
+                if (charge.currency?.toUpperCase() !== currency) return;
 
                 const date = new Date(charge.createdAt);
                 let periodKey: string;
@@ -132,7 +139,7 @@ export const ChartRevenue = ({
                 if (!revenueByPeriod[periodKey][connectionId]) {
                     revenueByPeriod[periodKey][connectionId] = 0;
                 }
-                revenueByPeriod[periodKey][connectionId] += charge.amount;
+                revenueByPeriod[periodKey][connectionId] += (mode === "revenue" || mode === "earnings") ? charge.amount : 1;
             });
         });
 
@@ -145,7 +152,9 @@ export const ChartRevenue = ({
             cumulativeTotals[connectionId] = 0;
         });
 
-        const data: SVGChartDataPoint[] = sortedPeriods.map((periodKey) => {
+        const multiSeries = connectionIds.length > 1;
+
+        const data = sortedPeriods.map((periodKey) => {
             let periodLabel: string;
 
             if (groupByDays) {
@@ -163,41 +172,95 @@ export const ChartRevenue = ({
                 });
             }
 
-            // Create values array with cumulative totals
-            const values = connectionIds.map((connectionId) => {
-                // Add this period's revenue to the cumulative total
-                cumulativeTotals[connectionId] += revenueByPeriod[periodKey]?.[connectionId] || 0;
-                const value = cumulativeTotals[connectionId];
-                const displayValue = new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency,
-                    notation: "compact",
-                    maximumFractionDigits: 1,
-                }).format(value);
-                return { value, displayValue };
+            // Build a flat object with period label + one key per connection
+            const point: Record<string, string | number> = { period: periodLabel };
+
+            let totalForPeriod = 0;
+            connectionIds.forEach((connectionId) => {
+                const periodValue = revenueByPeriod[periodKey]?.[connectionId] || 0;
+                if (mode === "volume" || mode === "earnings") {
+                    point[connectionId] = periodValue;
+                    totalForPeriod += periodValue;
+                } else {
+                    cumulativeTotals[connectionId] += periodValue;
+                    point[connectionId] = cumulativeTotals[connectionId];
+                    totalForPeriod += cumulativeTotals[connectionId];
+                }
             });
 
-            return {
-                label: periodLabel,
-                values,
-            };
+            if (multiSeries) {
+                point._total = totalForPeriod;
+            }
+
+            return point;
         });
 
-        // Handle single data point: duplicate to create a visible line
+        // Handle single data point: pad with previous and next period at 0
         if (data.length === 1) {
             const singlePoint = data[0];
-            return {
-                chartData: [
-                    { ...singlePoint, label: "" },
-                    { ...singlePoint },
-                    { ...singlePoint, label: "" },
-                ],
-                seriesConfig: series,
-            };
+            const periodKey = sortedPeriods[0];
+
+            const zeroPoint: Record<string, string | number> = { period: "" };
+            connectionIds.forEach((id) => { zeroPoint[id] = 0; });
+            if (multiSeries) zeroPoint._total = 0;
+
+            if (groupByDays) {
+                const [year, month, day] = periodKey.split("-");
+                const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                const prev = new Date(date);
+                prev.setDate(prev.getDate() - 1);
+                const next = new Date(date);
+                next.setDate(next.getDate() + 1);
+
+                const prevLabel = prev.toLocaleString("default", { month: "short", day: "numeric" });
+                const nextLabel = next.toLocaleString("default", { month: "short", day: "numeric" });
+
+                return {
+                    chartData: [
+                        { ...zeroPoint, period: prevLabel },
+                        { ...singlePoint },
+                        { ...zeroPoint, period: nextLabel },
+                    ],
+                    seriesConfig: series,
+                    hasMultipleSeries: multiSeries,
+                };
+            } else {
+                const [year, month] = periodKey.split("-");
+                const date = new Date(parseInt(year), parseInt(month) - 1);
+                const prev = new Date(date);
+                prev.setMonth(prev.getMonth() - 1);
+                const next = new Date(date);
+                next.setMonth(next.getMonth() + 1);
+
+                const fmt = (d: Date) => d.toLocaleString("default", { month: "short", year: "2-digit" });
+
+                return {
+                    chartData: [
+                        { ...zeroPoint, period: fmt(prev) },
+                        { ...singlePoint },
+                        { ...zeroPoint, period: fmt(next) },
+                    ],
+                    seriesConfig: series,
+                    hasMultipleSeries: multiSeries,
+                };
+            }
         }
 
-        return { chartData: data, seriesConfig: series };
-    }, [chargesByConnection, connections, entities, groupByDays, currency]);
+        return { chartData: data, seriesConfig: series, hasMultipleSeries: multiSeries };
+    }, [chargesByConnection, connections, entities, groupByDays, mode, currency]);
+
+    const chartSeries = useMemo(() => {
+        const s = seriesConfig.map((item) => ({ name: item.name as never, color: item.color }));
+        if (hasMultipleSeries) {
+            s.push({ name: "_total" as never, color: TOTAL_COLOR });
+        }
+        return s;
+    }, [seriesConfig, hasMultipleSeries]);
+
+    const chart = useChart({
+        data: chartData,
+        series: chartSeries,
+    });
 
     if (loading) {
         return <ChartSkeleton />;
@@ -206,12 +269,11 @@ export const ChartRevenue = ({
     if (!chargesByConnection || !connections || chartData.length === 0) {
         return (
             <Box
-                bg="#111827"
+                bg="#0b0b1a"
                 p={6}
                 borderRadius="xl"
-                border="1px solid"
-                borderColor="gray.200"
-                shadow="sm"
+                border="1px solid rgba(255, 255, 255, 0.2)"
+                shadow="2xl"
                 height={{ base: "280px", xl: "400px", "2xl": "500px" }}
                 display="flex"
                 flexDirection="column"
@@ -233,11 +295,11 @@ export const ChartRevenue = ({
                 </Flex>
 
                 <Text fontSize="lg" fontWeight="medium" color="gray.400">
-                    No revenue data available
+                    No {mode === "revenue" ? "revenue" : "payment"} data available
                 </Text>
 
                 <Text fontSize="sm" color="gray.500" textAlign="center" maxW="280px">
-                    Revenue will appear here once transactions are processed
+                    {mode === "revenue" ? "Revenue" : "Payment"} data will appear here once transactions are processed
                 </Text>
             </Box>
         );
@@ -245,24 +307,130 @@ export const ChartRevenue = ({
 
     return (
         <Box
-            borderRadius={30}
-            border="3px solid"
-            borderColor="gray.200"
-            shadow="sm"
-            height={{ base: "280px", xl: "400px", "2xl": "500px" }}
-            position="relative"
+            bg="#0b0b1a"
+            p={6}
+            borderRadius="xl"
+            border="1px solid rgba(255, 255, 255, 0.2)"
         >
-            <SVGChart
-                data={chartData}
-                series={seriesConfig}
-                backgroundColor="#111827"
-                showGrid={true}
-                gridLines={4}
-                animated={true}
-                currency={currency}
-                showXAxis={true}
-                showYAxis={true}
-            />
+            <Box height={{ base: "280px", xl: "400px", "2xl": "500px" }}>
+                <Recharts.ResponsiveContainer width="100%" height="100%">
+                    <Chart.Root chart={chart}>
+                        <Recharts.AreaChart data={chart.data}>
+                            {/* Gradient definitions for each series */}
+                            <defs>
+                                {seriesConfig.map((s) => (
+                                    <linearGradient key={s.name} id={`gradient-${s.name}`} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor={chart.color(s.color)} stopOpacity={0.3} />
+                                        <stop offset="100%" stopColor={chart.color(s.color)} stopOpacity={0} />
+                                    </linearGradient>
+                                ))}
+                            </defs>
+
+                            {/* Grid */}
+                            <Recharts.CartesianGrid
+                                stroke="rgba(255, 255, 255, 0.2)"
+                                strokeDasharray="3 3"
+                                vertical={false}
+                            />
+
+                            {/* X Axis */}
+                            <Recharts.XAxis
+                                dataKey="period"
+                                tick={{ fill: chart.color("text.muted") }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+
+                            {/* Y Axis */}
+                            <Recharts.YAxis
+                                tickFormatter={(mode === "revenue" || mode === "earnings") ? chart.formatNumber({ notation: "compact" }) : undefined}
+                                tick={{ fill: chart.color("text.muted") }}
+                                axisLine={false}
+                                tickLine={false}
+                                allowDecimals={mode === "revenue" || mode === "earnings"}
+                            />
+
+                            {/* Tooltip */}
+                            <Recharts.Tooltip
+                                contentStyle={{
+                                    backgroundColor: chart.color("bg.surface"),
+                                    border: "1px solid rgba(255,255,255,0.15)",
+                                    borderRadius: "8px",
+                                }}
+                                labelStyle={{ color: chart.color("white") }}
+                                formatter={(value, name) => {
+                                    if (typeof value !== "number") return "";
+                                    const formatted = (mode === "revenue" || mode === "earnings")
+                                        ? chart.formatNumber({ style: "currency", currency })(value)
+                                        : value.toLocaleString();
+                                    if (name === "_total") {
+                                        return [formatted, "Total"];
+                                    }
+                                    const label = seriesConfig.find((s) => s.name === name)?.label || name;
+                                    return [formatted, label];
+                                }}
+                            />
+
+                            {/* Area series for each connection */}
+                            {seriesConfig.map((s) => (
+                                <Recharts.Area
+                                    key={s.name}
+                                    type="monotone"
+                                    dataKey={chart.key(s.name as never)}
+                                    stroke={chart.color(s.color)}
+                                    fill={`url(#gradient-${s.name})`}
+                                    strokeWidth={2}
+                                    dot={{ r: 4, fill: chart.color(s.color) }}
+                                    activeDot={{ r: 6 }}
+                                />
+                            ))}
+
+                            {/* Total line when multiple series */}
+                            {hasMultipleSeries && (
+                                <Recharts.Area
+                                    type="monotone"
+                                    dataKey={chart.key("_total" as never)}
+                                    stroke={chart.color(TOTAL_COLOR)}
+                                    fill="none"
+                                    strokeWidth={2}
+                                    strokeDasharray="6 3"
+                                    dot={false}
+                                    activeDot={{ r: 5, fill: chart.color(TOTAL_COLOR) }}
+                                />
+                            )}
+                        </Recharts.AreaChart>
+                    </Chart.Root>
+                </Recharts.ResponsiveContainer>
+            </Box>
+
+            {/* Currency selector */}
+            {availableCurrencies.length > 1 && (
+                <HStack justify="center" gap={2} mt={4}>
+                    {availableCurrencies.map((cur) => (
+                        <Box
+                            key={cur}
+                            as="button"
+                            px={3}
+                            py={1}
+                            borderRadius="md"
+                            fontSize="xs"
+                            fontWeight="semibold"
+                            cursor="pointer"
+                            transition="all 0.15s"
+                            bg={currency === cur ? "purple.900" : "transparent"}
+                            color={currency === cur ? "white" : "gray.400"}
+                            border="1px solid"
+                            borderColor={currency === cur ? "purple.500" : "rgba(255, 255, 255, 0.15)"}
+                            _hover={{
+                                borderColor: currency === cur ? "purple.400" : "rgba(255, 255, 255, 0.3)",
+                            }}
+                            onClick={() => setSelectedCurrency(cur)}
+                        >
+                            {cur}
+                        </Box>
+                    ))}
+                </HStack>
+            )}
         </Box>
     );
 };

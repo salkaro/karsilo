@@ -84,6 +84,58 @@ async function deleteUserDocsAdmin({ uid, idToken, isOwner, orgId }: { uid: stri
     }
 }
 
+export async function removeMemberFromOrganisation({ idToken, orgId, memberUid }: { idToken: string, orgId: string, memberUid: string }): Promise<{ success?: boolean; error?: string }> {
+    try {
+        // Step 1: Verify token and get caller UID
+        const uid = await retrieveUIDAdmin({ idToken });
+        if (!uid) {
+            return { error: "No user found" };
+        }
+
+        // Step 2: Fetch the caller's user document and verify permissions
+        const callerSnap = await firestoreAdmin.collection(usersCol).doc(uid).get();
+        if (!callerSnap.exists) {
+            return { error: "Caller not found in users collection." };
+        }
+        const caller = callerSnap.data() as IUser;
+
+        const hasAccess = levelTwoAccess.includes(caller.organisation?.role as string);
+        if (caller.organisation?.id !== orgId || !hasAccess) {
+            return { error: "Insufficient permissions." };
+        }
+
+        // Step 3: Fetch the target member's user document
+        const memberSnap = await firestoreAdmin.collection(usersCol).doc(memberUid).get();
+        if (!memberSnap.exists) {
+            return { error: "Member not found." };
+        }
+        const member = memberSnap.data() as IUser;
+
+        // Step 4: Prevent removing the organisation owner
+        if (member.organisation?.role === "owner") {
+            return { error: "Cannot remove the organisation owner." };
+        }
+
+        // Step 5: Verify the member belongs to this organisation
+        if (member.organisation?.id !== orgId) {
+            return { error: "Member does not belong to this organisation." };
+        }
+
+        // Step 6: Remove organisation field from member's user document
+        await firestoreAdmin.collection(usersCol).doc(memberUid).update({
+            organisation: firestore.FieldValue.delete()
+        });
+
+        // Step 7: Decrement organisation members count
+        await incrementOrganisationMembersCount({ idToken, orgId, negate: true });
+
+        return { success: true };
+    } catch (error) {
+        console.error(`Error in removeMemberFromOrganisation: ${error}`);
+        return { error: `${error}` };
+    }
+}
+
 export async function deleteInviteCodeAdmin({ idToken, inviteId, orgId }: { idToken: string, inviteId: string, orgId: string }): Promise<{ success?: boolean; error?: string }> {
     try {
         // Step 1: Verify token and get caller UID

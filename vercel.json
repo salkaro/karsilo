@@ -1,18 +1,4 @@
 {
   "buildCommand": "pnpm turbo run build --filter=app",
-  "outputDirectory": "apps/app/.next",
-  "routes": [
-    {
-      "src": "/_next/static/(.*)",
-      "dest": "/apps/app/.next/static/$1"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/apps/app/.next/server/app/api/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/apps/app/.next/server/app/$1"
-    }
-  ]
+  "outputDirectory": "apps/app/.next"
 }

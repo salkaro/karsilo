@@ -1,0 +1,5 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "pnpm turbo run build --filter=app",
+  "outputDirectory": "apps/app/.next"
+}

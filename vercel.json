@@ -3,8 +3,16 @@
   "outputDirectory": "apps/app/.next",
   "routes": [
     {
+      "src": "/_next/static/(.*)",
+      "dest": "/apps/app/.next/static/$1"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/apps/app/.next/server/app/api/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/apps/app/.next/server/pages/$1"
+      "dest": "/apps/app/.next/server/app/$1"
     }
   ]
 }

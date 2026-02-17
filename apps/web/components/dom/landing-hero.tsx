@@ -14,6 +14,7 @@ import {
 } from "@repo/ui/index";
 import Link from "next/link";
 import { FadeIn } from "./scroll-animations";
+import { appRoute } from "../constants/site";
 
 // Tilt card component - tilted by default, straightens on hover
 function TiltCard({
@@ -249,7 +250,7 @@ export function LandingHero() {
               {/* CTA Buttons */}
               <FadeIn delay={0.3}>
                 <HStack gap={4} flexWrap="wrap" pt={4}>
-                  <Link href="/sign-up">
+                  <Link href={`${appRoute}/sign-up`}>
                     <Button
                       size="lg"
                       px={8}

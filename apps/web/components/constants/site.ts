@@ -1,0 +1,1 @@
+export const appRoute = "https://app.karsilo.com"

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { isProduction } from "@repo/constants";
 
 export async function GET(request: NextRequest) {
     try {
@@ -13,11 +14,11 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const searchParams = request.nextUrl.searchParams;
+        const { searchParams } = request.nextUrl;
         const entityId = searchParams.get("entityId");
 
-        const stripeClientId = process.env.STRIPE_CLIENT_ID;
-        const redirectUri = process.env.STRIPE_OAUTH_REDIRECT_URI;
+        const stripeClientId = isProduction ? process.env.STRIPE_CLIENT_ID: process.env.TEST_STRIPE_CLIENT_ID;
+        const redirectUri = isProduction ? process.env.STRIPE_OAUTH_REDIRECT_URI: process.env.TEST_STRIPE_OAUTH_REDIRECT_URI;
 
         if (!stripeClientId || !redirectUri) {
             return NextResponse.json(

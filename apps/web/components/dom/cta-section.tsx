@@ -11,6 +11,7 @@ import {
 } from "@repo/ui/index";
 import Link from "next/link";
 import { events } from "../lib/analytics";
+import { appRoute } from "../constants/site";
 
 export function CTASection() {
   return (
@@ -68,7 +69,7 @@ export function CTASection() {
           </Text>
 
           <HStack gap={4} flexWrap="wrap" justify="center" pt={4}>
-            <Link href="/sign-up">
+            <Link href={`${appRoute}/sign-up`}>
               <Button
                 size="lg"
                 px={10}
@@ -85,7 +86,7 @@ export function CTASection() {
                 transition="all 0.2s"
                 boxShadow="lg"
                 onClick={() =>
-                  events.ctaClick("start_free_trial", "cta_section", "/sign-up")
+                    events.ctaClick("start_free_trial", "cta_section", `${appRoute}/sign-up`)
                 }
               >
                 Start Your Free Trial

@@ -6,25 +6,6 @@ import { Flex, Text, Avatar, Grid } from "@repo/ui";
 
 // External Imports
 import { Suspense } from "react";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-    title: "Onboarding | Karsilo",
-    description: "Onboarding | Karsil",
-    robots: {
-        index: false,
-        follow: false,
-        nocache: false,
-        googleBot: {
-            index: false,
-            follow: false,
-            noimageindex: false,
-            'max-video-preview': -1,
-            'max-image-preview': 'large',
-            'max-snippet': -1,
-        },
-    },
-};
 
 export default function AuthLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (

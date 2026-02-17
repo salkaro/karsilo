@@ -18,6 +18,7 @@ import {
 } from "@repo/ui/index";
 import Image from "next/image";
 import { events } from "../lib/analytics";
+import { appRoute } from "../constants/site";
 
 interface NavLink {
   label: string;
@@ -53,8 +54,8 @@ export function Navbar({
   logo,
   links = defaultLinks,
   ctaButtons = {
-    primary: { label: "Get Started", href: "/sign-up" },
-    secondary: { label: "Sign In", href: "/login" },
+    primary: { label: "Get Started", href: `${appRoute}/sign-up` },
+      secondary: { label: "Sign In", href: `${appRoute}/login` },
   },
 }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);

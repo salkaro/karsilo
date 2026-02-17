@@ -3,6 +3,7 @@
 import { Box, Container, Flex, Heading, Stack, Text, Button, HStack } from '@repo/ui/index';
 import Link from 'next/link';
 import { events } from '../lib/analytics';
+import { appRoute } from '../constants/site';
 
 interface HeroProps {
     badge?: {
@@ -32,7 +33,7 @@ export function Hero({
     description = 'Access our comprehensive databases to find detailed contact information for over 100K+ VC and angel investors from top global markets.',
     primaryButton = {
         label: 'Get Started Now',
-        href: '/sign-up',
+        href: `${appRoute}/sign-up`,
     },
     secondaryButton = {
         label: 'Watch Demo',

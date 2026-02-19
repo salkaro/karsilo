@@ -16,6 +16,6 @@ if (!admin.apps.length) {
     }
 }
 
-const firestoreAdmin = admin.firestore();
+const firestoreAdmin = admin.apps.length ? admin.firestore() : (null as unknown as FirebaseFirestore.Firestore);
 
 export { firestoreAdmin, admin };

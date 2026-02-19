@@ -13,7 +13,6 @@ if (!admin.apps.length) {
         });
     } catch (error) {
         console.error("Error initializing Admin SDK:", error);
-        throw error;
     }
 }
 

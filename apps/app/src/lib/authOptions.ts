@@ -1,15 +1,17 @@
 // Local Imports
 import { auth } from "@/lib/firebase/config";
 import { IUser, IJwtToken } from "@repo/models";
-import { retrieveUserAdmin } from "@/services/firebase/admin-retrieve";
+import { retrieveUserAdmin, retrieveUserAndCreateAdmin } from "@/services/firebase/admin-retrieve";
 import { isProduction, root } from "@repo/constants";
-import { retrieveUserAndCreate } from "@/services/firebase/retrieve";
 
 // External Imports
 import { signInWithEmailAndPassword } from "firebase/auth";
+import { getAuth as getAdminAuth } from "firebase-admin/auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextAuthOptions } from "next-auth";
 
+// Ensure Firebase Admin is initialized
+import "@repo/firebase";
 
 
 export const authOptions: NextAuthOptions = {
@@ -27,6 +29,7 @@ export const authOptions: NextAuthOptions = {
     },
     providers: [
         CredentialsProvider({
+            id: "credentials",
             name: "Credentials",
             credentials: {
                 email: { label: "Email", type: "email", placeholder: "email@example.com" },
@@ -53,6 +56,28 @@ export const authOptions: NextAuthOptions = {
                 }
             },
         }),
+        CredentialsProvider({
+            id: "firebase-token",
+            name: "Firebase Token",
+            credentials: {
+                idToken: { label: "ID Token", type: "text" },
+            },
+            async authorize(credentials) {
+                if (!credentials?.idToken) {
+                    throw new Error("No ID token provided");
+                }
+                try {
+                    const decodedToken = await getAdminAuth().verifyIdToken(credentials.idToken);
+
+                    return {
+                        id: decodedToken.uid,
+                        email: decodedToken.email ?? null,
+                    };
+                } catch (error) {
+                    throw new Error(`Invalid token: ${error}`);
+                }
+            },
+        }),
     ],
     callbacks: {
         async jwt({ token, user }) {
@@ -60,7 +85,7 @@ export const authOptions: NextAuthOptions = {
                 token.id = user.id;
                 token.email = user.email as string;
                 try {
-                    const userDoc = (await retrieveUserAndCreate({ uid: user.id, email: user.email }) ?? {}) as IUser;
+                    const userDoc = (await retrieveUserAndCreateAdmin({ uid: user.id, email: user.email }) ?? {}) as IUser;
                     token.user = userDoc;
                 } catch (error) {
                     console.error('Error retrieving user (jwt):', error);

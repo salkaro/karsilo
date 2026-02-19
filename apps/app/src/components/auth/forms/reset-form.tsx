@@ -3,15 +3,17 @@
 // External Imports
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import Image from "next/image"
 import {
     Box,
     Button,
-    Field,
     Input,
     VStack,
     Heading,
     Text,
     Link,
+    Flex,
+    HStack,
 } from "@repo/ui"
 
 // Local Imports
@@ -69,45 +71,105 @@ function ResetForm({ className }: ResetFormProps) {
     }, []);
 
     if (!isClient) {
-        // Render a fallback placeholder during SSR
         return <PreparingForm />
     }
 
 
     return (
-        <Box as="form" onSubmit={handleSubmit} className={className}>
-            <div className="g-recaptcha" data-sitekey="6Lc_-3krAAAAAMaYeoFalpjQ3Mk0KUNWeIqYdFHU" data-action="password_reset"></div>
-            <VStack gap={6} align="stretch">
-                <VStack gap={2} textAlign="center">
-                    <Heading size="xl">Reset password</Heading>
-                    <Text color="gray.500" fontSize="sm">
-                        Enter your email below to reset password
-                    </Text>
-                </VStack>
-                <VStack gap={6} align="stretch" px={{ xl: 4, "2xl": 0 }}>
-                    <Field.Root required>
-                        <Field.Label htmlFor="email">Email</Field.Label>
-                        <Input
-                            id="email"
-                            value={email}
-                            type="email"
-                            placeholder="m@example.com"
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleEmailInput(e.target.value)}
-                        />
-                    </Field.Root>
-                    <Button
-                        type="submit"
-                        width="full"
-                        disabled={loading || !validEmail}
-                        colorScheme="blue"
-                    >
-                        Send Reset Link
-                    </Button>
-                </VStack>
-                <Text textAlign="center" fontSize="sm">
-                    Know your password?{" "}
-                    <Link href="/login" textDecoration="underline">
-                        Login
+        <Box maxW="md" width="full" className={className}>
+            <VStack align="stretch" gap={8}>
+                <Flex direction="column" align="center" gap={4}>
+                    <Link href="/">
+                        <HStack gap={2}>
+                            <Image
+                                src="/logos/icon.svg"
+                                alt="Karsilo"
+                                width={40}
+                                height={40}
+                            />
+                            <Text fontSize="2xl" fontWeight="bold" color="gray.800">
+                                Karsilo
+                            </Text>
+                        </HStack>
+                    </Link>
+                    <Box textAlign="center">
+                        <Heading
+                            as="h1"
+                            fontSize={{ base: "2xl", md: "3xl" }}
+                            fontWeight="bold"
+                            color="gray.900"
+                            mb={2}
+                        >
+                            Reset your password
+                        </Heading>
+                        <Text fontSize="md" color="gray.600">
+                            Enter your email and we'll send you a reset link
+                        </Text>
+                    </Box>
+                </Flex>
+
+                <Box
+                    as="form"
+                    onSubmit={handleSubmit}
+                    p={{ base: 6, md: 8 }}
+                    bg="white"
+                    borderRadius="2xl"
+                    boxShadow="sm"
+                    border="1px solid"
+                    borderColor="gray.100"
+                >
+                    <div className="g-recaptcha" data-sitekey="6Lc_-3krAAAAAMaYeoFalpjQ3Mk0KUNWeIqYdFHU" data-action="password_reset"></div>
+                    <VStack gap={4}>
+                        <Box width="full">
+                            <Text
+                                fontSize="sm"
+                                fontWeight="medium"
+                                color="gray.700"
+                                mb={1}
+                            >
+                                Email
+                            </Text>
+                            <Input
+                                id="email"
+                                value={email}
+                                type="email"
+                                placeholder="john@company.com"
+                                size="lg"
+                                bg="white"
+                                borderRadius="lg"
+                                border="1px solid"
+                                borderColor="gray.200"
+                                _focus={{
+                                    border: "2px solid",
+                                    borderColor: "brand.500",
+                                    boxShadow: "none",
+                                    outline: "none",
+                                }}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleEmailInput(e.target.value)}
+                            />
+                        </Box>
+
+                        <Button
+                            type="submit"
+                            width="full"
+                            size="lg"
+                            bg="brand.600"
+                            color="white"
+                            _hover={{ bg: "brand.700" }}
+                            mt={2}
+                            disabled={loading || !validEmail}
+                        >
+                            Send Reset Link
+                        </Button>
+                    </VStack>
+                </Box>
+
+                <Text fontSize="sm" color="gray.600" textAlign="center">
+                    Remember your password?{" "}
+                    <Link href="/login">
+                        <Text as="span" color="brand.600" fontWeight="medium">
+                            Sign in
+                        </Text>
                     </Link>
                 </Text>
             </VStack>

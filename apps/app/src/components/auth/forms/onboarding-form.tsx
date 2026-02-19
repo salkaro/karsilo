@@ -129,19 +129,22 @@ const OnboardingForm = () => {
         }
     };
 
+    const [sessionSettled, setSessionSettled] = useState(false);
+
     useEffect(() => {
-        if (toastShownRef.current) return;
+        // Don't act on the initial "loading" state — wait for it to resolve
+        if (status === "loading") return;
 
-        if (status === "loading") {
-            toast.info("Checking your session...");
-        } else if (status === "unauthenticated") {
-            toast.warning("You are not authenticated.");
-        } else if (status === "authenticated") {
-            toast.success(`Welcome to your onboarding`);
+        if (!toastShownRef.current) {
+            if (status === "unauthenticated") {
+                toast.warning("You are not authenticated.");
+            } else if (status === "authenticated") {
+                toast.success(`Welcome to your onboarding`);
+            }
+            toastShownRef.current = true;
         }
-        toastShownRef.current = true;
-
-    }, [status, session,]);
+        setSessionSettled(true);
+    }, [status, session]);
 
     async function onClick() {
         router.push("/login")
@@ -151,7 +154,7 @@ const OnboardingForm = () => {
         setStage((prev) => Math.max(prev - 1, 0));
     };
 
-    if (status === "loading") {
+    if (status === "loading" || !sessionSettled) {
         return <PreparingForm />
     }
 

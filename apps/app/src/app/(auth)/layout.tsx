@@ -1,43 +1,90 @@
 // Local Imports
 import { Providers } from "../providers";
-import ChartsAndMetrics from "@/components/ui/demo-charts-and-metrics";
-import { shortenedTitle, title } from "@repo/constants";
-import { Flex, Text, Avatar, Grid } from "@repo/ui";
 
 // External Imports
 import { Suspense } from "react";
+import { Box, Flex, Spinner } from "@repo/ui";
 
 export default function AuthLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
         <Providers>
-            <Grid minH="100vh" templateColumns={{ base: "1fr", lg: "2fr 3fr" }}>
-                {/* Left Side - Auth Form */}
+            <Box minH="100vh" bg="gray.50" position="relative" overflow="hidden">
+                {/* Dot grid overlay */}
+                <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    opacity={0.4}
+                    backgroundImage="radial-gradient(circle at 2px 2px, #d1d5db 1px, transparent 0)"
+                    backgroundSize="32px 32px"
+                    pointerEvents="none"
+                />
+
+                {/* Decorative grey circles */}
+                <Box
+                    position="absolute"
+                    top="-150px"
+                    right="-100px"
+                    width="400px"
+                    height="400px"
+                    bg="gray.200"
+                    opacity={0.4}
+                    borderRadius="full"
+                    pointerEvents="none"
+                />
+                <Box
+                    position="absolute"
+                    bottom="-120px"
+                    left="-80px"
+                    width="350px"
+                    height="350px"
+                    bg="gray.200"
+                    opacity={0.3}
+                    borderRadius="full"
+                    pointerEvents="none"
+                />
+                <Box
+                    position="absolute"
+                    top="30%"
+                    left="-100px"
+                    width="200px"
+                    height="200px"
+                    bg="gray.300"
+                    opacity={0.2}
+                    borderRadius="full"
+                    pointerEvents="none"
+                />
+                <Box
+                    position="absolute"
+                    bottom="20%"
+                    right="-60px"
+                    width="180px"
+                    height="180px"
+                    bg="gray.200"
+                    opacity={0.25}
+                    borderRadius="full"
+                    pointerEvents="none"
+                />
+
                 <Flex
-                    direction="column"
-                    px={8}
-                    py={12}
-                    bg="white"
+                    minH="100vh"
+                    justify="center"
+                    align="center"
+                    p={6}
+                    position="relative"
+                    zIndex={1}
                 >
-                    <Flex mb={16} align="center" gap={3} maxW="420px" mx="auto" w="full">
-                        <Avatar.Root size="sm" bg="transparent">
-                            <Avatar.Image src="/logos/icon.svg" />
-                            <Avatar.Fallback name={shortenedTitle} />
-                        </Avatar.Root>
-                        <Text fontSize="xl" fontWeight="600" color="gray.900">
-                            {title}
-                        </Text>
-                    </Flex>
-
-                    <Flex direction="column" flex={1} justify="center" maxW="420px" mx="auto" w="full">
-                        <Suspense fallback={<div>Loading...</div>}>
-                            {children}
-                        </Suspense>
-                    </Flex>
+                    <Suspense fallback={
+                        <Flex align="center" justify="center">
+                            <Spinner />
+                        </Flex>
+                    }>
+                        {children}
+                    </Suspense>
                 </Flex>
-
-                {/* Right Side - Revenue Info */}
-                <ChartsAndMetrics />
-            </Grid>
+            </Box>
         </Providers>
     );
 }

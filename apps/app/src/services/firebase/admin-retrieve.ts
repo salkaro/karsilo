@@ -32,6 +32,37 @@ export async function retrieveUserAdmin({ uid }: { uid: string }): Promise<IUser
     }
 }
 
+export async function retrieveUserAndCreateAdmin({ uid, email }: { uid: string, email?: string | null }): Promise<IUser | void> {
+    try {
+        const docRef = firestoreAdmin.collection(usersCol).doc(uid);
+        const snapshot = await docRef.get();
+
+        if (snapshot.exists) {
+            return snapshot.data() as IUser;
+        }
+
+        if (!email) throw new Error('Email is required to create a new user');
+
+        const now = new Date();
+        const user: IUser = {
+            id: uid,
+            email,
+            authentication: {
+                emailVerified: 'verified',
+                onboarding: true,
+            },
+            metadata: {
+                createdAt: now.getTime()
+            }
+        };
+
+        await docRef.set(user);
+        return user;
+    } catch (error) {
+        console.error('Error in retrieveUserAndCreateAdmin:', error);
+    }
+}
+
 
 export async function retrieveOrganisationMembers({ idToken, orgId }: { idToken: string, orgId: string }): Promise<{ members?: IUser[], error?: string }> {
     try {

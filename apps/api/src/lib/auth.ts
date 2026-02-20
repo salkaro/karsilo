@@ -34,9 +34,19 @@ export async function validateApiKey(
     const accessLevelCode = apiKey.slice(64);
     const accessLevel = parseInt(accessLevelCode, 10);
 
-    // Look up the token via collection group query
+    // Require orgId header for direct token lookup
+    const orgId = request.headers.get("x-org-id");
+
+    if (!orgId) {
+        return NextResponse.json(
+            { error: "Missing X-Org-Id header" },
+            { status: 401 }
+        );
+    }
+
+    // Look up the token directly in the organisation's tokens subcollection
     const snapshot = await firestoreAdmin
-        .collectionGroup(tokensSubCol)
+        .collection(`${organisationsCol}/${orgId}/${tokensSubCol}`)
         .where("id", "==", apiKey)
         .limit(1)
         .get();
@@ -47,11 +57,6 @@ export async function validateApiKey(
             { status: 401 }
         );
     }
-
-    // Extract orgId from the document path: organisations/{orgId}/tokens/{tokenId}
-    const tokenDoc = snapshot.docs[0];
-    const pathSegments = tokenDoc.ref.path.split("/");
-    const orgId = pathSegments[1];
 
     // Check organisation subscription has API access
     const orgDoc = await firestoreAdmin

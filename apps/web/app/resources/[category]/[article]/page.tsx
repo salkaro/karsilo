@@ -22,7 +22,9 @@ export async function generateMetadata({
 }: {
   params: Promise<{ category: string; article: string }>;
 }) {
-  const { category, article: articleSlug } = await params;
+  const { category: rawCategory, article: rawArticle } = await params;
+  const category = decodeURIComponent(rawCategory);
+  const articleSlug = decodeURIComponent(rawArticle);
   const articleData = helpArticles[category]?.[articleSlug];
 
   if (!articleData) {
@@ -70,7 +72,9 @@ export default async function HelpArticlePage({
 }: {
   params: Promise<{ category: string; article: string }>;
 }) {
-  const { category, article: articleSlug } = await params;
+  const { category: rawCategory, article: rawArticle } = await params;
+  const category = decodeURIComponent(rawCategory);
+  const articleSlug = decodeURIComponent(rawArticle);
   const articleData = helpArticles[category]?.[articleSlug];
 
   if (!articleData) {

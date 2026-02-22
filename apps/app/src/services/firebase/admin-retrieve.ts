@@ -2,8 +2,8 @@
 
 // Local Imports
 import { firestoreAdmin } from "@repo/firebase";
-import { IUser, IMemberInvite } from "@repo/models";
-import { usersCol, getInviteCodesPath, levelTwoAccess } from "@repo/constants";
+import { IUser, IMemberInvite, IWaitlistEntry } from "@repo/models";
+import { usersCol, getInviteCodesPath, levelTwoAccess, waitlistCol } from "@repo/constants";
 
 // External Imports
 import { getAuth } from "firebase-admin/auth";
@@ -41,23 +41,8 @@ export async function retrieveUserAndCreateAdmin({ uid, email }: { uid: string, 
             return snapshot.data() as IUser;
         }
 
-        if (!email) throw new Error('Email is required to create a new user');
-
-        const now = new Date();
-        const user: IUser = {
-            id: uid,
-            email,
-            authentication: {
-                emailVerified: 'verified',
-                onboarding: true,
-            },
-            metadata: {
-                createdAt: now.getTime()
-            }
-        };
-
-        await docRef.set(user);
-        return user;
+        // Account creation is disabled while waitlist is active
+        return undefined;
     } catch (error) {
         console.error('Error in retrieveUserAndCreateAdmin:', error);
     }
@@ -128,5 +113,21 @@ export async function retrieveOrganisationInvites({ idToken, orgId }: { idToken:
     } catch (error) {
         console.error(`Error in retrieveOrganisationInvites: ${error}`);
         return { error: `${error}` }
+    }
+}
+
+export async function retrieveWaitlistEntries(): Promise<{ entries?: IWaitlistEntry[], error?: string }> {
+    try {
+        const querySnap = await firestoreAdmin
+            .collection(waitlistCol)
+            .orderBy("submittedAt", "desc")
+            .get();
+
+        const entries: IWaitlistEntry[] = querySnap.docs.map((doc) => doc.data() as IWaitlistEntry);
+
+        return { entries };
+    } catch (error) {
+        console.error(`Error in retrieveWaitlistEntries: ${error}`);
+        return { error: `${error}` };
     }
 }

@@ -1,7 +1,7 @@
 import detectPort from "detect-port";
 import { spawn } from "child_process";
 
-const DEFAULT_PORT = 3001;
+const DEFAULT_PORT = 3000;
 
 async function startDev() {
   const port = await detectPort(DEFAULT_PORT);

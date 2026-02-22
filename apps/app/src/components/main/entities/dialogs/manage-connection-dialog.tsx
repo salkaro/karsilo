@@ -94,7 +94,7 @@ const ManageConnectionDialog: React.FC<Props> = ({ entity, connection, onConnect
                                 </Text>
                                 <Text fontSize="xs" color="fg.muted">
                                     {hasConnections
-                                        ? 'Connected to Stripe'
+                                        ? `Connected: ${connection.stripeAccountId}`
                                         : 'Accept payments and manage subscriptions'}
                                 </Text>
                             </VStack>

@@ -13,6 +13,8 @@ interface IUser {
     
     organisation?: IUserOrganisation;
 
+    isAdmin?: boolean;
+
     brand?: IBrand;
     authentication?: IAuthentication | null;
     metadata?: IMetaData;

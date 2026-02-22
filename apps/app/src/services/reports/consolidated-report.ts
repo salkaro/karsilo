@@ -216,8 +216,8 @@ export async function generateConsolidatedReport({
         ]);
 
         // === Payments Breakdown ===
-        const recurringMap = new Map<string, { country: string; amount: number; fees: number; entityId: string; entityName: string }>();
-        const oneTimeMap = new Map<string, { country: string; amount: number; fees: number; entityId: string; entityName: string }>();
+        const recurringMap = new Map<string, { country: string; currency: string; amount: number; fees: number; entityId: string; entityName: string }>();
+        const oneTimeMap = new Map<string, { country: string; currency: string; amount: number; fees: number; entityId: string; entityName: string }>();
 
         for (const { connectionId, charges } of chargesResults) {
             const entityInfo = connEntityMap.get(connectionId) || { entityId: connectionId, entityName: "Unknown" };
@@ -226,13 +226,14 @@ export async function generateConsolidatedReport({
                 if (charge.status !== "succeeded") continue;
 
                 const country = charge.payment_method_details?.card?.country || "Unknown";
+                const currency = charge.currency.toUpperCase();
                 const amount = charge.amount / 100;
                 const fees = charge.application_fee_amount ? charge.application_fee_amount / 100 : 0;
                 const type = extractChargeType(charge.receipt_url);
-                const key = `${entityInfo.entityId}_${country}`;
+                const key = `${entityInfo.entityId}_${country}_${currency}`;
 
                 const targetMap = type === "recurring" ? recurringMap : oneTimeMap;
-                const existing = targetMap.get(key) || { country, amount: 0, fees: 0, entityId: entityInfo.entityId, entityName: entityInfo.entityName };
+                const existing = targetMap.get(key) || { country, currency, amount: 0, fees: 0, entityId: entityInfo.entityId, entityName: entityInfo.entityName };
                 existing.amount += amount;
                 existing.fees += fees;
                 targetMap.set(key, existing);
@@ -279,7 +280,7 @@ export async function generateConsolidatedReport({
         };
 
         // === Refunds Breakdown ===
-        const refundsMap = new Map<string, { country: string; count: number; amount: number; entityId: string; entityName: string }>();
+        const refundsMap = new Map<string, { country: string; currency: string; count: number; amount: number; entityId: string; entityName: string }>();
 
         for (const { connectionId, refunds } of refundsResults) {
             const entityInfo = connEntityMap.get(connectionId) || { entityId: connectionId, entityName: "Unknown" };
@@ -287,9 +288,10 @@ export async function generateConsolidatedReport({
             for (const refund of refunds) {
                 const charge = typeof refund.charge === 'object' && refund.charge !== null ? refund.charge as Stripe.Charge : null;
                 const country = charge?.payment_method_details?.card?.country || "Unknown";
-                const key = `${entityInfo.entityId}_${country}`;
+                const currency = refund.currency.toUpperCase();
+                const key = `${entityInfo.entityId}_${country}_${currency}`;
 
-                const existing = refundsMap.get(key) || { country, count: 0, amount: 0, entityId: entityInfo.entityId, entityName: entityInfo.entityName };
+                const existing = refundsMap.get(key) || { country, currency, count: 0, amount: 0, entityId: entityInfo.entityId, entityName: entityInfo.entityName };
                 existing.count += 1;
                 existing.amount += refund.amount / 100;
                 refundsMap.set(key, existing);
@@ -301,7 +303,7 @@ export async function generateConsolidatedReport({
         };
 
         // === Products Breakdown ===
-        const productStatsMap = new Map<string, { productId: string; productName: string; country: string; revenue: number; customers: number; entityId: string; entityName: string }>();
+        const productStatsMap = new Map<string, { productId: string; productName: string; country: string; currency: string; revenue: number; customers: number; entityId: string; entityName: string }>();
 
         for (const { connectionId, invoices } of invoicesResults) {
             const entityInfo = connEntityMap.get(connectionId) || { entityId: connectionId, entityName: "Unknown" };
@@ -325,13 +327,15 @@ export async function generateConsolidatedReport({
                     if (!productId) continue;
 
                     const lineAmount = (lineItem.amount || 0) / 100;
+                    const currency = (lineItem.currency || invoice.currency || "usd").toUpperCase();
                     const country = "Unknown";
-                    const key = `${productId}_${entityInfo.entityId}_${country}`;
+                    const key = `${productId}_${entityInfo.entityId}_${country}_${currency}`;
 
                     const existing = productStatsMap.get(key) || {
                         productId,
                         productName: productNameMap.get(productId) || "Unknown Product",
                         country,
+                        currency,
                         revenue: 0,
                         customers: 0,
                         entityId: entityInfo.entityId,
@@ -405,6 +409,30 @@ export async function saveConsolidatedReport({
         return {
             success: false,
             error: error instanceof Error ? error.message : "Failed to save consolidated report",
+        };
+    }
+}
+
+export async function deleteConsolidatedReport({
+    organisationId,
+    reportId,
+}: {
+    organisationId: string;
+    reportId: string;
+}): Promise<{ success: boolean; error: string | null }> {
+    try {
+        const reportsPath = getConsolidatedReportsPath(organisationId);
+        await firestoreAdmin
+            .collection(reportsPath)
+            .doc(reportId)
+            .delete();
+
+        return { success: true, error: null };
+    } catch (error) {
+        console.error("Error deleting consolidated report:", error);
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Failed to delete consolidated report",
         };
     }
 }

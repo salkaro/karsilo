@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Box, Text, HStack, Button } from "@repo/ui";
 import { IConsolidateReport } from "@repo/models";
 import { ExportOptions } from "@/types/export";
 import { generateCSV, generateQuickBooksIIF } from "@/utils/export-helpers";
-import { Copy } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 
 interface ExportPreviewProps {
     report: IConsolidateReport;
@@ -14,6 +14,8 @@ interface ExportPreviewProps {
 }
 
 export default function ExportPreview({ report, format, options }: ExportPreviewProps) {
+    const [copied, setCopied] = useState(false);
+
     const previewContent = useMemo(() => {
         let content: string;
         if (format === 'csv') {
@@ -31,8 +33,23 @@ export default function ExportPreview({ report, format, options }: ExportPreview
         };
     }, [report, format, options]);
 
+    useEffect(() => {
+        if (!copied) return;
+
+        const timeout = setTimeout(() => {
+            setCopied(false);
+        }, 1500);
+
+        return () => clearTimeout(timeout);
+    }, [copied]);
+
     const handleCopy = async () => {
-        await navigator.clipboard.writeText(previewContent.full);
+        try {
+            await navigator.clipboard.writeText(previewContent.full);
+            setCopied(true);
+        } catch {
+            // optional: show toast if you want
+        }
     };
 
     return (
@@ -42,8 +59,15 @@ export default function ExportPreview({ report, format, options }: ExportPreview
                     Preview ({previewContent.totalLines} lines total)
                 </Text>
                 <Button size="xs" variant="ghost" onClick={handleCopy}>
-                    <Copy size={14} />
-                    Copy
+                    {copied ? (
+                        <Check
+                            size={14}
+                            className="transition-all duration-200 scale-110 text-green-500"
+                        />
+                    ) : (
+                        <Copy size={14} />
+                    )}
+                    {copied ? "Copied" : "Copy"}
                 </Button>
             </HStack>
             <Box

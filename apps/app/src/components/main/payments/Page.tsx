@@ -20,8 +20,10 @@ import {
     HStack,
     Select,
     Portal,
+    Tooltip,
     createListCollection,
 } from "@repo/ui";
+import { LuInfo } from "react-icons/lu";
 import { useEntities } from "@/hooks/useEntities";
 
 type FilterTab = "all" | "week" | "month" | "year";
@@ -131,10 +133,10 @@ export default function RevenuePage() {
 
     const chartModeCollection = useMemo(() => createListCollection({
         items: [
-            { label: "Revenue", value: "revenue" },
-            { label: "Payments", value: "payments" },
-            { label: "Volume", value: "volume" },
-            { label: "Earnings", value: "earnings" },
+            { label: "Revenue", value: "revenue", description: "Total income received from all transactions before any deductions" },
+            { label: "Payments", value: "payments", description: "Total number of completed payment transactions" },
+            { label: "Volume", value: "volume", description: "Total value of all processed transactions" },
+            { label: "Earnings", value: "earnings", description: "Net income after fees and deductions are applied" },
         ],
     }), []);
 
@@ -184,7 +186,23 @@ export default function RevenuePage() {
                                     <Select.Content>
                                         {chartModeCollection.items.map((item) => (
                                             <Select.Item key={item.value} item={item}>
-                                                {item.label}
+                                                <HStack justify="space-between" flex={1}>
+                                                    {item.label}
+                                                    <Tooltip.Root positioning={{ placement: "right" }} openDelay={200} closeDelay={0}>
+                                                        <Tooltip.Trigger asChild>
+                                                            <Box as="span" color="fg.muted" cursor="help">
+                                                                <LuInfo size={14} />
+                                                            </Box>
+                                                        </Tooltip.Trigger>
+                                                        <Portal>
+                                                            <Tooltip.Positioner>
+                                                                <Tooltip.Content>
+                                                                    {item.description}
+                                                                </Tooltip.Content>
+                                                            </Tooltip.Positioner>
+                                                        </Portal>
+                                                    </Tooltip.Root>
+                                                </HStack>
                                             </Select.Item>
                                         ))}
                                     </Select.Content>

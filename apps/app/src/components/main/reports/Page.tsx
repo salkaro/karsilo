@@ -32,6 +32,7 @@ export default function ReportsPage() {
         refetch,
         createReport,
         createConsolidatedReport,
+        deleteReport,
         creating,
     } = useReports(organisation?.id ?? null);
 
@@ -129,6 +130,7 @@ export default function ReportsPage() {
                 connectionEntityMap={connectionEntityMap}
                 onRefresh={refetch}
                 loading={loading}
+                onDeleteReport={deleteReport}
             />
 
             {/* Create Report Dialog */}

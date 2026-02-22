@@ -7,7 +7,7 @@ import { doc, getDoc } from "firebase/firestore"
 import { useEffect, useState } from "react"
 import { IoMdEye, IoMdEyeOff } from "react-icons/io"
 import { useRouter, useSearchParams } from "next/navigation"
-import { signInWithEmailAndPassword as firebaseSignIn, GoogleAuthProvider, signInWithPopup } from "firebase/auth"
+import { signInWithEmailAndPassword as firebaseSignIn, GoogleAuthProvider, signInWithPopup, getAdditionalUserInfo } from "firebase/auth"
 import Image from "next/image"
 import {
     Box,
@@ -114,6 +114,15 @@ function LoginForm({ className }: LoginFormProps) {
         try {
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
+            const additionalInfo = getAdditionalUserInfo(result);
+
+            // If this is a brand new Firebase Auth user, delete it and redirect to waitlist
+            if (additionalInfo?.isNewUser) {
+                await result.user.delete();
+                router.push("/waitlist");
+                return;
+            }
+
             const idToken = await result.user.getIdToken();
 
             const signInResult = await signIn("firebase-token", {
@@ -129,6 +138,12 @@ function LoginForm({ className }: LoginFormProps) {
 
             const session = await getSession();
             const userData = session?.user as IUser | undefined;
+
+            if (!userData?.id) {
+                await auth.signOut();
+                router.push("/waitlist");
+                return;
+            }
 
             if (userData?.authentication?.onboarding) {
                 router.push("/onboarding");
@@ -351,9 +366,9 @@ function LoginForm({ className }: LoginFormProps) {
 
                 <Text fontSize="sm" color="gray.600" textAlign="center">
                     Don&apos;t have an account?{" "}
-                    <Link href="/sign-up">
+                    <Link href="/waitlist">
                         <Text as="span" color="brand.600" fontWeight="medium">
-                            Sign up for free
+                            Join the waitlist
                         </Text>
                     </Link>
                 </Text>

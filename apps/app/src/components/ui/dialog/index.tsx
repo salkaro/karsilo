@@ -54,7 +54,7 @@ const CustomDialog: React.FC<Props> = ({
                             )}
                         </Dialog.Header>
 
-                        <Dialog.Body>
+                        <Dialog.Body maxH="50vh" overflowY="auto">
                             {children}
                         </Dialog.Body>
 

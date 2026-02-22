@@ -1,7 +1,8 @@
 "use server";
 
 import Stripe from "stripe";
-import { retrieveConnectionByType, retrieveConnection } from "@/services/connections/retrieve";
+import { retrieveAllConnections, retrieveConnectionByType, retrieveConnection } from "@/services/connections/retrieve";
+import { retrieveEntities } from "@/services/firebase/entities/retrieve";
 import { ICustomer } from "@repo/models";
 import { PlainReportRun } from "./create";
 
@@ -9,19 +10,19 @@ const LIMIT = 100;
 
 export async function retrieveStripeCustomers({
     organisationId,
-    startingAfter,
 }: {
     organisationId: string;
-    startingAfter?: string;
 }): Promise<{ customers: ICustomer[] | null; hasMore: boolean; error: string | null }> {
     try {
-        // Get the Stripe connection for this organization
-        const connection = await retrieveConnectionByType({
-            organisationId: organisationId,
-            type: "stripe",
-        });
+        // Get all connections and entities for this organization
+        const [connections, entitiesResult] = await Promise.all([
+            retrieveAllConnections({ organisationId }),
+            retrieveEntities({ organisationId }),
+        ]);
 
-        if (!connection || !connection.accessToken) {
+        const stripeConnections = connections.filter(c => c.type === "stripe" && c.status === "connected");
+
+        if (stripeConnections.length === 0) {
             return {
                 customers: null,
                 hasMore: false,
@@ -29,30 +30,65 @@ export async function retrieveStripeCustomers({
             };
         }
 
-        // Initialize Stripe with the connected account's access token
-        const stripe = new Stripe(connection.accessToken);
+        // Build entity name lookup
+        const entities = entitiesResult.entities || [];
+        const entityMap = new Map<string, string>();
+        for (const entity of entities) {
+            entityMap.set(entity.id, entity.name);
+        }
 
-        // Retrieve customers from the connected Stripe account
-        const customers = await stripe.customers.list({
-            limit: LIMIT,
-            starting_after: startingAfter,
-        });
+        const connEntityMap = new Map<string, string>();
+        for (const conn of stripeConnections) {
+            if (conn.entityId) {
+                connEntityMap.set(conn.id, entityMap.get(conn.entityId) || "Unknown");
+            }
+        }
 
-        // Map Stripe customers to ICustomer format
-        const mappedCustomers: ICustomer[] = customers.data.map((customer) => ({
-            id: customer.id,
-            name: customer.name || undefined,
-            email: customer.email || undefined,
-            phone: customer.phone || undefined,
-            status: customer.deleted ? "deleted" : "active",
-            country: customer.address?.country,
-            currency: customer.currency || undefined,
-            createdAt: customer.created,
-        }));
+        // Fetch all customers from all stripe connections in parallel
+        const results = await Promise.all(
+            stripeConnections.map(async (conn) => {
+                const connection = await retrieveConnection({ organisationId, connectionId: conn.id });
+                if (!connection?.accessToken) return [];
+
+                const stripe = new Stripe(connection.accessToken);
+                const allCustomers: Stripe.Customer[] = [];
+                let startingAfter: string | undefined;
+                let hasMore = true;
+
+                while (hasMore) {
+                    const customers = await stripe.customers.list({
+                        limit: LIMIT,
+                        starting_after: startingAfter,
+                    });
+
+                    allCustomers.push(...customers.data);
+                    hasMore = customers.data.length === LIMIT;
+                    if (customers.data.length > 0) {
+                        startingAfter = customers.data[customers.data.length - 1].id;
+                    }
+                }
+
+                const entityName = connEntityMap.get(conn.id);
+
+                return allCustomers.map((customer): ICustomer => ({
+                    id: customer.id,
+                    name: customer.name || undefined,
+                    email: customer.email || undefined,
+                    phone: customer.phone || undefined,
+                    status: customer.deleted ? "deleted" : "active",
+                    country: customer.address?.country,
+                    currency: customer.currency || undefined,
+                    createdAt: customer.created,
+                    entityName,
+                }));
+            })
+        );
+
+        const allMappedCustomers = results.flat();
 
         return {
-            customers: mappedCustomers,
-            hasMore: customers.data.length === LIMIT,
+            customers: allMappedCustomers,
+            hasMore: false,
             error: null,
         };
     } catch (error) {

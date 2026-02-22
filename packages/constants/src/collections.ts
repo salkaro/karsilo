@@ -1,6 +1,7 @@
 // Root Collections
 export const usersCol = "users";
 export const organisationsCol = "organisations";
+export const waitlistCol = "waitlist";
 
 // Subcollections (under organisations/{organisationId}/)
 export const connectionsSubCol = "connections";

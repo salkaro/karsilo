@@ -34,13 +34,13 @@ export function generateCSV(report: IConsolidateReport, options?: ExportOptions[
 
     // Payments - Recurring
     if (includeHeaders) {
-        rows.push(row('Section', 'Entity', 'Country', 'Amount', 'Fees'));
+        rows.push(row('Section', 'Entity', 'Country', 'Currency', 'Amount', 'Fees'));
     }
     for (const r of report.paymentsBreakdown.recurring) {
-        rows.push(row('Recurring Payments', r.entityName, r.country, r.amount.toFixed(2), r.fees.toFixed(2)));
+        rows.push(row('Recurring Payments', r.entityName, r.country, r.currency || 'USD', r.amount.toFixed(2), r.fees.toFixed(2)));
     }
     for (const r of report.paymentsBreakdown.oneTime) {
-        rows.push(row('One-Time Payments', r.entityName, r.country, r.amount.toFixed(2), r.fees.toFixed(2)));
+        rows.push(row('One-Time Payments', r.entityName, r.country, r.currency || 'USD', r.amount.toFixed(2), r.fees.toFixed(2)));
     }
 
     // Empty separator row
@@ -66,19 +66,19 @@ export function generateCSV(report: IConsolidateReport, options?: ExportOptions[
     // Refunds
     rows.push('');
     if (includeHeaders) {
-        rows.push(row('Section', 'Entity', 'Country', 'Count', 'Amount'));
+        rows.push(row('Section', 'Entity', 'Country', 'Currency', 'Count', 'Amount'));
     }
     for (const r of report.refundsBreakdown.gained) {
-        rows.push(row('Refunds', r.entityName, r.country, r.count, r.amount.toFixed(2)));
+        rows.push(row('Refunds', r.entityName, r.country, r.currency || 'USD', r.count, r.amount.toFixed(2)));
     }
 
     // Products
     rows.push('');
     if (includeHeaders) {
-        rows.push(row('Section', 'Product', 'Entity', 'Country', 'Revenue', 'Customers'));
+        rows.push(row('Section', 'Product', 'Entity', 'Country', 'Currency', 'Revenue', 'Customers'));
     }
     for (const p of report.productsBreakdown.gained) {
-        rows.push(row('Products', p.productName, p.entityName, p.country, p.revenue.toFixed(2), p.customers));
+        rows.push(row('Products', p.productName, p.entityName, p.country, p.currency || 'USD', p.revenue.toFixed(2), p.customers));
     }
 
     return rows.join('\n');
@@ -101,8 +101,9 @@ export function generateQuickBooksIIF(report: IConsolidateReport, options?: Expo
     if (includeRecurring) {
         for (const r of report.paymentsBreakdown.recurring) {
             const netAmount = r.amount - r.fees;
-            lines.push(`TRNS\tDEPOSIT\t${fromDate}\tBanking\t${netAmount.toFixed(2)}\tRecurring Payment - ${r.entityName} (${r.country}) ${period}`);
-            lines.push(`SPL\tDEPOSIT\t${fromDate}\tRevenue\t${(-r.amount).toFixed(2)}\tRecurring Revenue - ${r.entityName}`);
+            const currency = r.currency || 'USD';
+            lines.push(`TRNS\tDEPOSIT\t${fromDate}\tBanking\t${netAmount.toFixed(2)}\tRecurring Payment - ${r.entityName} (${r.country}, ${currency}) ${period}`);
+            lines.push(`SPL\tDEPOSIT\t${fromDate}\tRevenue\t${(-r.amount).toFixed(2)}\tRecurring Revenue - ${r.entityName} (${currency})`);
             if (r.fees > 0) {
                 lines.push(`SPL\tDEPOSIT\t${fromDate}\tProcessing Fees\t${r.fees.toFixed(2)}\tFees - ${r.entityName}`);
             }
@@ -113,8 +114,9 @@ export function generateQuickBooksIIF(report: IConsolidateReport, options?: Expo
     if (includeOneTime) {
         for (const r of report.paymentsBreakdown.oneTime) {
             const netAmount = r.amount - r.fees;
-            lines.push(`TRNS\tDEPOSIT\t${fromDate}\tBanking\t${netAmount.toFixed(2)}\tOne-Time Payment - ${r.entityName} (${r.country}) ${period}`);
-            lines.push(`SPL\tDEPOSIT\t${fromDate}\tRevenue\t${(-r.amount).toFixed(2)}\tOne-Time Revenue - ${r.entityName}`);
+            const currency = r.currency || 'USD';
+            lines.push(`TRNS\tDEPOSIT\t${fromDate}\tBanking\t${netAmount.toFixed(2)}\tOne-Time Payment - ${r.entityName} (${r.country}, ${currency}) ${period}`);
+            lines.push(`SPL\tDEPOSIT\t${fromDate}\tRevenue\t${(-r.amount).toFixed(2)}\tOne-Time Revenue - ${r.entityName} (${currency})`);
             if (r.fees > 0) {
                 lines.push(`SPL\tDEPOSIT\t${fromDate}\tProcessing Fees\t${r.fees.toFixed(2)}\tFees - ${r.entityName}`);
             }

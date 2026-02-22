@@ -7,6 +7,7 @@ import { sidebarItems } from "@/constants/platform"
 import { shortenedTitle, title } from "@repo/constants"
 import { SidebarUser } from "./sidebar-user"
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 
 
 interface SidebarProps {
@@ -17,6 +18,7 @@ interface SidebarProps {
 
 export default function Sidebar({ isOpen, onClose }: SidebarProps) {
     const pathname = usePathname();
+    const { data: session } = useSession();
 
     const [showOverlay, setShowOverlay] = useState(false)
 
@@ -162,6 +164,45 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                                 </Link>
                             )
                         })}
+
+                        {session?.user?.isAdmin === true && (
+                            <>
+                                <Separator my={4} />
+
+                                <Text fontSize="xs" fontWeight="bold" color="muted.foreground" px={3} mb={2} truncate>
+                                    ADMIN
+                                </Text>
+                                {sidebarItems.admin.map((item) => {
+                                    const isActive = pathname === item.url
+                                    const IconComponent = item.icon
+
+                                    return (
+                                        <Link
+                                            key={item.url}
+                                            href={item.url}
+                                            display="flex"
+                                            alignItems="center"
+                                            gap={3}
+                                            px={3}
+                                            py={2.5}
+                                            borderRadius="lg"
+                                            bg={isActive ? "purple.50" : "transparent"}
+                                            color={isActive ? "purple.600" : "gray.700"}
+                                            fontWeight={isActive ? "semibold" : "medium"}
+                                            fontSize="sm"
+                                            _hover={{
+                                                bg: isActive ? "purple.50" : "gray.100",
+                                                textDecoration: "none",
+                                            }}
+                                            transition="all 0.2s"
+                                        >
+                                            <IconComponent size={18} />
+                                            <Text truncate>{item.title}</Text>
+                                        </Link>
+                                    )
+                                })}
+                            </>
+                        )}
 
                         <Separator my={4} />
 

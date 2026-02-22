@@ -5,10 +5,11 @@ import { HStack, Text, Badge, Avatar, Link, Button } from "@repo/ui";
 import { IEntity, IConsolidateReport } from "@repo/models";
 import { DataTable, Column, SummaryCard } from "@/components/ui/table";
 import { formatDateByTimeAgo } from "@/utils/formatters";
-import { FileText, CheckCircle, Clock, XCircle, Download, Eye, Layers } from "lucide-react";
+import { FileText, CheckCircle, Clock, XCircle, Download, Eye, Layers, Trash2 } from "lucide-react";
 import { IReport } from "@/hooks/useReports";
 import ConsolidatedReportDetailsDialog from "./dialogs/dialog-consolidated-report-details";
 import ExportReportDialog from "../export/dialogs/dialog-export-report";
+import CustomDialog from "@/components/ui/dialog";
 
 interface ReportsTableProps {
     reports: (IReport & { connectionId: string })[];
@@ -17,6 +18,11 @@ interface ReportsTableProps {
     connectionEntityMap: Record<string, string>;
     onRefresh?: () => void;
     loading?: boolean;
+    onDeleteReport?: (params: {
+        reportId: string;
+        reportSource: "stripe" | "consolidated";
+        connectionId?: string;
+    }) => Promise<{ success: boolean; error?: string }>;
 }
 
 const REPORT_TYPE_LABELS: Record<string, string> = {
@@ -46,9 +52,25 @@ export const ReportsTable = ({
     connectionEntityMap,
     onRefresh,
     loading,
+    onDeleteReport,
 }: ReportsTableProps) => {
     const [selectedConsolidatedReport, setSelectedConsolidatedReport] = useState<IConsolidateReport | null>(null);
     const [exportReport, setExportReport] = useState<IConsolidateReport | null>(null);
+    const [deletingReport, setDeletingReport] = useState<(IReport & { connectionId: string }) | null>(null);
+    const [deleting, setDeleting] = useState(false);
+
+    const handleDelete = async () => {
+        if (!deletingReport || !onDeleteReport) return;
+
+        setDeleting(true);
+        await onDeleteReport({
+            reportId: deletingReport.id,
+            reportSource: deletingReport.reportSource as "stripe" | "consolidated",
+            connectionId: deletingReport.connectionId || undefined,
+        });
+        setDeleting(false);
+        setDeletingReport(null);
+    };
 
     // Merge stripe reports and consolidated reports into a unified list
     const allReports = useMemo(() => {
@@ -230,57 +252,67 @@ export const ReportsTable = ({
                 key: "download",
                 header: "Actions",
                 align: "right",
-                render: (report: IReport) => {
+                render: (report: IReport & { connectionId: string }) => {
                     if (report.reportSource === "consolidated") {
                         const consolidatedReport = consolidatedReports?.find(cr => cr.id === report.id);
-                        if (!consolidatedReport) {
-                            return (
-                                <Text fontSize="sm" color="gray.400">
-                                    -
-                                </Text>
-                            );
-                        }
                         return (
-                            <HStack gap={1}>
+                            <HStack gap={1} justify="flex-end">
+                                {consolidatedReport && (
+                                    <>
+                                        <Button
+                                            size="xs"
+                                            variant="ghost"
+                                            onClick={() => setSelectedConsolidatedReport(consolidatedReport)}
+                                        >
+                                            <Eye size={16} />
+                                        </Button>
+                                        <Button
+                                            size="xs"
+                                            variant="ghost"
+                                            onClick={() => setExportReport(consolidatedReport)}
+                                        >
+                                            <Download size={16} />
+                                        </Button>
+                                    </>
+                                )}
                                 <Button
                                     size="xs"
                                     variant="ghost"
-                                    onClick={() => setSelectedConsolidatedReport(consolidatedReport)}
+                                    colorPalette="red"
+                                    onClick={() => setDeletingReport(report)}
                                 >
-                                    <Eye size={16} />
-                                    View
-                                </Button>
-                                <Button
-                                    size="xs"
-                                    variant="ghost"
-                                    onClick={() => setExportReport(consolidatedReport)}
-                                >
-                                    <Download size={16} />
-                                    Export
+                                    <Trash2 size={16} />
                                 </Button>
                             </HStack>
                         );
                     }
 
-                    if (report.status !== "succeeded" || !report.resultUrl) {
-                        return (
-                            <Text fontSize="sm" color="gray.400">
-                                -
-                            </Text>
-                        );
-                    }
                     return (
-                        <Link
-                            href={report.resultUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            color="blue.500"
-                            _hover={{ color: "blue.600" }}
-                        >
-                            <HStack gap={1} marginRight={2}>
-                                <Download size={20} />
-                            </HStack>
-                        </Link>
+                        <HStack gap={1} justify="flex-end">
+                            {report.status === "succeeded" && report.resultUrl && (
+                                <Button
+                                    size="xs"
+                                    variant="ghost"
+                                    asChild
+                                >
+                                    <Link
+                                        href={report.resultUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <Download size={16} />
+                                    </Link>
+                                </Button>
+                            )}
+                            <Button
+                                size="xs"
+                                variant="ghost"
+                                colorPalette="red"
+                                onClick={() => setDeletingReport(report)}
+                            >
+                                <Trash2 size={16} />
+                            </Button>
+                        </HStack>
                     );
                 },
             },
@@ -339,6 +371,20 @@ export const ReportsTable = ({
                 onClose={() => setExportReport(null)}
                 report={exportReport}
             />
+            <CustomDialog
+                open={!!deletingReport}
+                onOpenChange={(open) => {
+                    if (!open) setDeletingReport(null);
+                }}
+                title="Delete Report"
+                confirmText="Delete"
+                onConfirm={handleDelete}
+                isLoading={deleting}
+            >
+                <Text>
+                    Are you sure you want to delete this report? This action cannot be undone.
+                </Text>
+            </CustomDialog>
         </>
     );
 };

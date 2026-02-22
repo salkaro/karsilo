@@ -1,4 +1,4 @@
-import { LucideIcon, UserRound, Wallet, Store, Table2, FilePlusCorner, UsersRound, ArrowLeftRight, UserLock, FileChartPie, Building2, Key, Package2, Download, FolderUp } from "lucide-react";
+import { LucideIcon, UserRound, Wallet, Store, Table2, FilePlusCorner, UsersRound, ArrowLeftRight, UserLock, FileChartPie, Building2, Key, Package2, Download, FolderUp, ClipboardList } from "lucide-react";
 
 
 export interface IItem {
@@ -68,6 +68,15 @@ export const sidebarItems = {
             url: "/entities",
             icon: Building2,
             description: "Overview of connected apps",
+            type: "page" as const
+        }
+    ] as IItem[],
+    admin: [
+        {
+            title: "Waitlist",
+            url: "/admin/waitlist",
+            icon: ClipboardList,
+            description: "View waitlist signups",
             type: "page" as const
         }
     ] as IItem[],

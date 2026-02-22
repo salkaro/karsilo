@@ -79,7 +79,7 @@ const sitemapSections: SitemapSection[] = [
       { label: "Terms of Service", href: "/terms" },
       { label: "Privacy Policy", href: "/privacy" },
       { label: "Cookie Policy", href: "/cookies" },
-      { label: "Security", href: "/security" },
+      { label: "Disclaimer", href: "/disclaimer" },
       { label: "Accessibility", href: "/accessibility" },
     ],
   },

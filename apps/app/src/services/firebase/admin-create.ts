@@ -4,7 +4,7 @@
 import { firestoreAdmin } from "@repo/firebase";
 import { IUser, IOrganisation } from "@repo/models";
 import { createStripeCustomer } from "../stripe/create";
-import { organisationsCol, usersCol } from "@repo/constants";
+import { organisationsCol, usersCol, waitlistCol } from "@repo/constants";
 
 
 export async function createUser({ uid, email }: { uid: string, email: string }): Promise<IUser | void> {
@@ -78,5 +78,54 @@ export async function createOrganisation({
     } catch (error) {
         console.error("Error creating organisation:", error);
         return { error };
+    }
+}
+
+export async function createWaitlistEntry({
+    firstName,
+    lastName,
+    email,
+    stripeAccounts,
+    revenue,
+    employees,
+    country,
+    organisationId,
+}: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    stripeAccounts: number;
+    revenue: string;
+    employees: string;
+    country?: string;
+    organisationId?: string;
+}): Promise<{ success?: boolean; error?: string }> {
+    try {
+        const docRef = firestoreAdmin.collection(waitlistCol).doc(email);
+
+        const data: Record<string, unknown> = {
+            firstName,
+            lastName,
+            email,
+            stripeAccounts,
+            revenue,
+            employees,
+            submittedAt: Date.now(),
+        };
+
+        if (country) {
+            data.country = country;
+        }
+
+        if (organisationId) {
+            data.organisationId = organisationId;
+        }
+
+        await docRef.set(data, { merge: true });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error creating waitlist entry:", error);
+        return { error: "Failed to create waitlist entry" };
     }
 }

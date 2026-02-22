@@ -21,6 +21,64 @@ interface Props {
     report: IConsolidateReport | null;
 }
 
+function sumByCurrency(items: { currency?: string; amount: number }[]): Record<string, number> {
+    const result: Record<string, number> = {};
+    for (const item of items) {
+        const currency = item.currency || "USD";
+        result[currency] = (result[currency] || 0) + item.amount;
+    }
+    return result;
+}
+
+function CurrencyBadge({ label, colorPalette, byCurrency }: { label: string; colorPalette: string; byCurrency: Record<string, number> }) {
+    const entries = Object.entries(byCurrency);
+    const [firstCurrency, firstAmount] = entries[0] ?? ["USD", 0];
+    const hasMultiple = entries.length > 1;
+
+    return (
+        <Box position="relative" className="group">
+            <Badge
+                colorPalette={colorPalette}
+                variant="subtle"
+                size="lg"
+                px={3}
+                py={1}
+                cursor={hasMultiple ? "pointer" : "default"}
+            >
+                {label}: {formatCurrency({ amount: firstAmount, currency: firstCurrency })}
+            </Badge>
+            {hasMultiple && (
+                <Box
+                    position="absolute"
+                    top="100%"
+                    left={0}
+                    mt={1}
+                    bg="white"
+                    borderRadius="md"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    boxShadow="md"
+                    zIndex={10}
+                    minW="150px"
+                    opacity={0}
+                    visibility="hidden"
+                    transition="opacity 0.2s, visibility 0.2s"
+                    _groupHover={{ opacity: 1, visibility: "visible" }}
+                >
+                    <VStack gap={0} align="stretch" py={1}>
+                        {entries.map(([currency, amount]) => (
+                            <HStack key={currency} px={3} py={2} justify="space-between" _hover={{ bg: "gray.50" }}>
+                                <Text fontSize="sm" color="gray.600">{currency}</Text>
+                                <Text fontSize="sm" fontWeight="medium">{formatCurrency({ amount, currency })}</Text>
+                            </HStack>
+                        ))}
+                    </VStack>
+                </Box>
+            )}
+        </Box>
+    );
+}
+
 const ConsolidatedReportDetailsDialog: React.FC<Props> = ({
     open,
     onClose,
@@ -33,15 +91,10 @@ const ConsolidatedReportDetailsDialog: React.FC<Props> = ({
         return `${from} - ${to}`;
     }, [report]);
 
-    const paymentsSummary = useMemo(() => {
-        if (!report) return { recurringTotal: 0, oneTimeTotal: 0, totalFees: 0 };
-        const recurringTotal = report.paymentsBreakdown.recurring.reduce((sum, r) => sum + r.amount, 0);
-        const oneTimeTotal = report.paymentsBreakdown.oneTime.reduce((sum, r) => sum + r.amount, 0);
-        const totalFees = [
-            ...report.paymentsBreakdown.recurring,
-            ...report.paymentsBreakdown.oneTime,
-        ].reduce((sum, r) => sum + r.fees, 0);
-        return { recurringTotal, oneTimeTotal, totalFees };
+    const revenueByCurrency = useMemo(() => {
+        if (!report) return {};
+        const allPayments = [...report.paymentsBreakdown.recurring, ...report.paymentsBreakdown.oneTime];
+        return sumByCurrency(allPayments);
     }, [report]);
 
     const customerSummary = useMemo(() => {
@@ -53,11 +106,14 @@ const ConsolidatedReportDetailsDialog: React.FC<Props> = ({
         return { total, active, deleted, new: newCount };
     }, [report]);
 
-    const refundsSummary = useMemo(() => {
-        if (!report) return { count: 0, amount: 0 };
-        const count = report.refundsBreakdown.gained.reduce((sum, r) => sum + r.count, 0);
-        const amount = report.refundsBreakdown.gained.reduce((sum, r) => sum + r.amount, 0);
-        return { count, amount };
+    const refundsByCurrency = useMemo(() => {
+        if (!report) return {};
+        return sumByCurrency(report.refundsBreakdown.gained);
+    }, [report]);
+
+    const refundsCount = useMemo(() => {
+        if (!report) return 0;
+        return report.refundsBreakdown.gained.reduce((sum, r) => sum + r.count, 0);
     }, [report]);
 
     if (!report) return null;
@@ -74,15 +130,19 @@ const ConsolidatedReportDetailsDialog: React.FC<Props> = ({
             <VStack gap={4} align="stretch" py={2}>
                 {/* Summary Badges */}
                 <HStack gap={3} flexWrap="wrap">
-                    <Badge colorPalette="blue" variant="subtle" size="lg" px={3} py={1}>
-                        Revenue: {formatCurrency({ amount: paymentsSummary.recurringTotal + paymentsSummary.oneTimeTotal, currency: "USD" })}
-                    </Badge>
+                    <CurrencyBadge
+                        label="Revenue"
+                        colorPalette="blue"
+                        byCurrency={revenueByCurrency}
+                    />
                     <Badge colorPalette="green" variant="subtle" size="lg" px={3} py={1}>
                         Customers: {customerSummary.total}
                     </Badge>
-                    <Badge colorPalette="red" variant="subtle" size="lg" px={3} py={1}>
-                        Refunds: {formatCurrency({ amount: refundsSummary.amount, currency: "USD" })}
-                    </Badge>
+                    <CurrencyBadge
+                        label="Refunds"
+                        colorPalette="red"
+                        byCurrency={refundsByCurrency}
+                    />
                 </HStack>
 
                 <Separator />
@@ -118,8 +178,8 @@ const ConsolidatedReportDetailsDialog: React.FC<Props> = ({
                                                 <Table.Row key={`recurring-${i}`}>
                                                     <Table.Cell>{row.entityName}</Table.Cell>
                                                     <Table.Cell>{row.country}</Table.Cell>
-                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.amount, currency: "USD" })}</Table.Cell>
-                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.fees, currency: "USD" })}</Table.Cell>
+                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.amount, currency: row.currency || "USD" })}</Table.Cell>
+                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.fees, currency: row.currency || "USD" })}</Table.Cell>
                                                 </Table.Row>
                                             ))}
                                         </Table.Body>
@@ -146,8 +206,8 @@ const ConsolidatedReportDetailsDialog: React.FC<Props> = ({
                                                 <Table.Row key={`onetime-${i}`}>
                                                     <Table.Cell>{row.entityName}</Table.Cell>
                                                     <Table.Cell>{row.country}</Table.Cell>
-                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.amount, currency: "USD" })}</Table.Cell>
-                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.fees, currency: "USD" })}</Table.Cell>
+                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.amount, currency: row.currency || "USD" })}</Table.Cell>
+                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.fees, currency: row.currency || "USD" })}</Table.Cell>
                                                 </Table.Row>
                                             ))}
                                         </Table.Body>
@@ -227,7 +287,7 @@ const ConsolidatedReportDetailsDialog: React.FC<Props> = ({
                         <VStack gap={4} align="stretch">
                             <Box>
                                 <Text fontWeight="semibold" fontSize="sm" mb={2}>
-                                    Refunds ({refundsSummary.count})
+                                    Refunds ({refundsCount})
                                 </Text>
                                 {report.refundsBreakdown.gained.length === 0 ? (
                                     <Text fontSize="sm" color="gray.500">No refunds in this period</Text>
@@ -247,7 +307,7 @@ const ConsolidatedReportDetailsDialog: React.FC<Props> = ({
                                                     <Table.Cell>{row.entityName}</Table.Cell>
                                                     <Table.Cell>{row.country}</Table.Cell>
                                                     <Table.Cell textAlign="right">{row.count}</Table.Cell>
-                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.amount, currency: "USD" })}</Table.Cell>
+                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.amount, currency: row.currency || "USD" })}</Table.Cell>
                                                 </Table.Row>
                                             ))}
                                         </Table.Body>
@@ -279,7 +339,7 @@ const ConsolidatedReportDetailsDialog: React.FC<Props> = ({
                                                 <Table.Row key={`product-${i}`}>
                                                     <Table.Cell>{row.productName}</Table.Cell>
                                                     <Table.Cell>{row.entityName}</Table.Cell>
-                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.revenue, currency: "USD" })}</Table.Cell>
+                                                    <Table.Cell textAlign="right">{formatCurrency({ amount: row.revenue, currency: row.currency || "USD" })}</Table.Cell>
                                                     <Table.Cell textAlign="right">{row.customers}</Table.Cell>
                                                 </Table.Row>
                                             ))}

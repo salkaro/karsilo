@@ -6,7 +6,7 @@ import { createStripeReport, ReportType, PlainReportRun } from "@/services/strip
 import { getSessionStorage, setSessionStorage } from "@/utils/storage-handlers";
 import { retrieveAllConnections } from "@/services/connections/retrieve";
 import { retrieveStripeReports } from "@/services/stripe/retrieve";
-import { generateConsolidatedReport, saveConsolidatedReport, retrieveConsolidatedReports } from "@/services/reports/consolidated-report";
+import { generateConsolidatedReport, saveConsolidatedReport, retrieveConsolidatedReports, deleteConsolidatedReport } from "@/services/reports/consolidated-report";
 import { reportsCookieKey, consolidatedReportsCookieKey } from "@/constants/cookies";
 import { IConsolidateReport } from "@repo/models";
 
@@ -38,6 +38,11 @@ interface UseReportsReturn {
     createConsolidatedReport: (params: {
         intervalStart: number;
         intervalEnd: number;
+    }) => Promise<{ success: boolean; error?: string }>;
+    deleteReport: (params: {
+        reportId: string;
+        reportSource: "stripe" | "consolidated";
+        connectionId?: string;
     }) => Promise<{ success: boolean; error?: string }>;
     hasMore: Record<string, boolean>;
 }
@@ -307,6 +312,69 @@ export function useReports(params: UseReportsParams | string | null): UseReports
         }
     }, [organisationId]);
 
+    const deleteReport = useCallback(async ({
+        reportId,
+        reportSource,
+        connectionId,
+    }: {
+        reportId: string;
+        reportSource: "stripe" | "consolidated";
+        connectionId?: string;
+    }): Promise<{ success: boolean; error?: string }> => {
+        if (!organisationId) {
+            return { success: false, error: "No organisation ID provided" };
+        }
+
+        try {
+            if (reportSource === "consolidated") {
+                const { success, error: delError } = await deleteConsolidatedReport({
+                    organisationId,
+                    reportId,
+                });
+
+                if (!success) {
+                    return { success: false, error: delError || "Failed to delete report" };
+                }
+
+                // Update local state
+                setConsolidatedReports(prev => prev ? prev.filter(r => r.id !== reportId) : prev);
+
+                // Update cache
+                const consolidatedStorageKey = `${organisationId}_${consolidatedReportsCookieKey}`;
+                setConsolidatedReports(current => {
+                    if (current) {
+                        setSessionStorage(consolidatedStorageKey, JSON.stringify(current));
+                    }
+                    return current;
+                });
+            } else {
+                // Stripe reports can't be deleted via the API, remove from local state only
+                if (connectionId) {
+                    setReportsByConnection(prev => {
+                        if (!prev) return prev;
+                        const updated = { ...prev };
+                        updated[connectionId] = (updated[connectionId] || []).filter(r => r.id !== reportId);
+                        return updated;
+                    });
+
+                    // Update cache
+                    const storageKey = `${organisationId}_${reportsCookieKey}`;
+                    setReportsByConnection(current => {
+                        if (current) {
+                            setSessionStorage(storageKey, JSON.stringify(current));
+                        }
+                        return current;
+                    });
+                }
+            }
+
+            return { success: true };
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : "Failed to delete report";
+            return { success: false, error: errorMessage };
+        }
+    }, [organisationId]);
+
     useEffect(() => {
         fetchReports();
     }, [fetchReports]);
@@ -333,6 +401,7 @@ export function useReports(params: UseReportsParams | string | null): UseReports
         loadMore,
         createReport,
         createConsolidatedReport,
+        deleteReport,
         hasMore
     };
 }

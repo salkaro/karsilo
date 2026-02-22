@@ -8,3 +8,4 @@ export * from './organisation.js';
 export * from './token.js';
 export * from './user.js';
 export * from './consolidated-report.js';
+export * from './waitlist.js';

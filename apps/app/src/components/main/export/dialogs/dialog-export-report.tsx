@@ -6,6 +6,7 @@ import {
     VStack,
     HStack,
     Badge,
+    Box,
     Separator,
     Tabs,
     Button,
@@ -24,6 +25,55 @@ import ExportPreview from "../export-preview";
 import { Download } from "lucide-react";
 import { toast } from "sonner";
 
+function CurrencyBadge({ label, colorPalette, byCurrency }: { label: string; colorPalette: string; byCurrency: Record<string, number> }) {
+    const entries = Object.entries(byCurrency);
+    const [firstCurrency, firstAmount] = entries[0] ?? ["USD", 0];
+    const hasMultiple = entries.length > 1;
+
+    return (
+        <Box position="relative" className="group">
+            <Badge
+                colorPalette={colorPalette}
+                variant="subtle"
+                size="lg"
+                px={3}
+                py={1}
+                cursor={hasMultiple ? "pointer" : "default"}
+            >
+                {label}: {formatCurrency({ amount: firstAmount, currency: firstCurrency })}
+            </Badge>
+            {hasMultiple && (
+                <Box
+                    position="absolute"
+                    top="100%"
+                    left={0}
+                    mt={1}
+                    bg="white"
+                    borderRadius="md"
+                    border="1px solid"
+                    borderColor="gray.200"
+                    boxShadow="md"
+                    zIndex={10}
+                    minW="150px"
+                    opacity={0}
+                    visibility="hidden"
+                    transition="opacity 0.2s, visibility 0.2s"
+                    _groupHover={{ opacity: 1, visibility: "visible" }}
+                >
+                    <VStack gap={0} align="stretch" py={1}>
+                        {entries.map(([currency, amount]) => (
+                            <HStack key={currency} px={3} py={2} justify="space-between" _hover={{ bg: "gray.50" }}>
+                                <Text fontSize="sm" color="gray.600">{currency}</Text>
+                                <Text fontSize="sm" fontWeight="medium">{formatCurrency({ amount, currency })}</Text>
+                            </HStack>
+                        ))}
+                    </VStack>
+                </Box>
+            )}
+        </Box>
+    );
+}
+
 interface Props {
     open: boolean;
     onClose: () => void;
@@ -32,7 +82,7 @@ interface Props {
 
 const ExportReportDialog: React.FC<Props> = ({ open, onClose, report }) => {
     const [format, setFormat] = useState<'csv' | 'iif'>('csv');
-
+    
     const options: ExportOptions = useMemo(() => ({
         format,
         csv: {
@@ -47,14 +97,21 @@ const ExportReportDialog: React.FC<Props> = ({ open, onClose, report }) => {
 
     const summary = useMemo(() => {
         if (!report) return null;
-        const recurringTotal = report.paymentsBreakdown.recurring.reduce((sum, r) => sum + r.amount, 0);
-        const oneTimeTotal = report.paymentsBreakdown.oneTime.reduce((sum, r) => sum + r.amount, 0);
+        const revenueByCurrency: Record<string, number> = {};
+        for (const r of [...report.paymentsBreakdown.recurring, ...report.paymentsBreakdown.oneTime]) {
+            const currency = r.currency || "USD";
+            revenueByCurrency[currency] = (revenueByCurrency[currency] || 0) + r.amount;
+        }
+        const refundsByCurrency: Record<string, number> = {};
+        for (const r of report.refundsBreakdown.gained) {
+            const currency = r.currency || "USD";
+            refundsByCurrency[currency] = (refundsByCurrency[currency] || 0) + r.amount;
+        }
         const customerTotal = report.customerBreakdown.total.reduce((sum, r) => sum + r.count, 0);
-        const refundAmount = report.refundsBreakdown.gained.reduce((sum, r) => sum + r.amount, 0);
         return {
-            totalRevenue: recurringTotal + oneTimeTotal,
+            revenueByCurrency,
+            refundsByCurrency,
             customerTotal,
-            refundAmount,
         };
     }, [report]);
 
@@ -103,15 +160,19 @@ const ExportReportDialog: React.FC<Props> = ({ open, onClose, report }) => {
             <VStack gap={4} align="stretch" py={2}>
                 {/* Summary */}
                 <HStack gap={3} flexWrap="wrap">
-                    <Badge colorPalette="blue" variant="subtle" size="lg" px={3} py={1}>
-                        Revenue: {formatCurrency({ amount: summary?.totalRevenue ?? 0, currency: "USD" })}
-                    </Badge>
+                    <CurrencyBadge
+                        label="Revenue"
+                        colorPalette="blue"
+                        byCurrency={summary?.revenueByCurrency ?? {}}
+                    />
                     <Badge colorPalette="green" variant="subtle" size="lg" px={3} py={1}>
                         Customers: {summary?.customerTotal ?? 0}
                     </Badge>
-                    <Badge colorPalette="red" variant="subtle" size="lg" px={3} py={1}>
-                        Refunds: {formatCurrency({ amount: summary?.refundAmount ?? 0, currency: "USD" })}
-                    </Badge>
+                    <CurrencyBadge
+                        label="Refunds"
+                        colorPalette="red"
+                        byCurrency={summary?.refundsByCurrency ?? {}}
+                    />
                 </HStack>
 
                 <Separator />

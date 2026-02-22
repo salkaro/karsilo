@@ -11,9 +11,11 @@ interface ICustomer {
     country?: string | null;
 
     deleted?: boolean;
-    
+
     imageUrl?: string;
     createdAt?: number;
+
+    entityName?: string;
 }   
 
 

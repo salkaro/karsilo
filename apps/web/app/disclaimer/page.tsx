@@ -8,15 +8,15 @@ import {
 } from "@repo/ui/index";
 import Link from "next/link";
 import { FadeIn } from "../../components/dom/scroll-animations";
-import { SECURITY_URL } from "../../components/constants/links";
+import { DISCLAIMER_URL } from "../../components/constants/links";
 
 export const metadata = {
-  title: "Security | Karsilo",
+  title: "Disclaimer | Karsilo",
   description:
-    "Learn about the security measures Karsilo uses to protect your data and accounts.",
+    "Read the disclaimer for Karsilo. Information about limitations of liability, accuracy, and terms of use.",
 };
 
-export default function SecurityPage() {
+export default function DisclaimerPage() {
   return (
     <Box
       as="section"
@@ -83,11 +83,11 @@ export default function SecurityPage() {
             color="gray.900"
             mb={4}
           >
-            Security
+            Disclaimer
           </Heading>
           <Text fontSize="lg" color="gray.600" mb={10}>
-            We take the security of your data seriously. Learn about the
-            measures we use to keep your information safe.
+            Please read this disclaimer carefully before using our website and
+            services.
           </Text>
         </FadeIn>
 
@@ -102,33 +102,29 @@ export default function SecurityPage() {
           >
             <VStack align="stretch" gap={4}>
               <Text fontSize="md" color="gray.700">
-                Karsilo is built with security at every layer. Our security
-                practices include:
+                Our Disclaimer outlines the limitations of liability and terms
+                for using Karsilo. Key areas covered include:
               </Text>
               <VStack align="stretch" gap={2} pl={4}>
                 <Text fontSize="sm" color="gray.600">
-                  • Encryption at rest and in transit (TLS 1.2+)
+                  • General disclaimers and information accuracy
                 </Text>
                 <Text fontSize="sm" color="gray.600">
-                  • OAuth-only Stripe access — we never store your Stripe
-                  credentials
+                  • External links and third-party content
                 </Text>
                 <Text fontSize="sm" color="gray.600">
-                  • No plain-text credential storage
+                  • Limitation of liability
                 </Text>
                 <Text fontSize="sm" color="gray.600">
-                  • Secure session management with automatic expiry
+                  • Service specific disclaimers
                 </Text>
                 <Text fontSize="sm" color="gray.600">
-                  • Regular security audits and vulnerability assessments
-                </Text>
-                <Text fontSize="sm" color="gray.600">
-                  • Role-based access controls for team accounts
+                  • Consent and governing law
                 </Text>
               </VStack>
               <Box pt={4}>
                 <Link
-                  href={SECURITY_URL}
+                  href={DISCLAIMER_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -138,7 +134,7 @@ export default function SecurityPage() {
                     color="white"
                     _hover={{ bg: "brand.700" }}
                   >
-                    Read Security Documentation
+                    Read Full Disclaimer
                   </Button>
                 </Link>
               </Box>

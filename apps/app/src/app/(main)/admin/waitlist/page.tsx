@@ -1,11 +1,10 @@
-// Local Imports
-import SignUpForm from "@/components/auth/forms/sign-up-form";
+import Page from "@/components/main/admin/waitlist/Page";
+
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-    title: "Sign Up | Karsilo",
-    description: "Sign Up | Karsil",
+    title: "Waitlist | Karsilo Admin",
+    description: "Admin waitlist dashboard",
     robots: {
         index: false,
         follow: false,
@@ -21,6 +20,8 @@ export const metadata: Metadata = {
     },
 };
 
-export default function SignUp() {
-    redirect("/waitlist");
+export default function WaitlistAdminRoute() {
+    return (
+        <Page />
+    )
 }

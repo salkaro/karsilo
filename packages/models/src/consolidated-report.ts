@@ -11,8 +11,8 @@ export interface IConsolidateReport {
 }
 
 export interface IPaymentsBreakdown {
-    recurring: { country: string, amount: number, fees: number; entityId: string, entityName: string }[];
-    oneTime: { country: string, amount: number, fees: number; entityId: string, entityName: string }[];
+    recurring: { country: string, currency: string, amount: number, fees: number; entityId: string, entityName: string }[];
+    oneTime: { country: string, currency: string, amount: number, fees: number; entityId: string, entityName: string }[];
 }
 
 export interface ICustomerBreakdown {
@@ -21,9 +21,9 @@ export interface ICustomerBreakdown {
 }
 
 export interface IRefundsBreakdown {
-    gained: { country: string, count: number, amount: number, entityId: string, entityName: string }[];
+    gained: { country: string, currency: string, count: number, amount: number, entityId: string, entityName: string }[];
 }
 
 export interface IProductsBreakdown {
-    gained: { productId: string, productName: string; country: string, revenue: number, customers: number, entityId: string, entityName: string }[]
+    gained: { productId: string, productName: string; country: string, currency: string, revenue: number, customers: number, entityId: string, entityName: string }[]
 }
